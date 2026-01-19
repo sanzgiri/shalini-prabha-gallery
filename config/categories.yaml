@@ -1,0 +1,34 @@
+categories:
+  - id: birds
+    name: "Birds"
+    slug: "birds"
+    description: "Bird photography from the Pacific Northwest, Costa Rica, Guatemala, and beyond"
+    cover_image: "photo-gallery/birds/great-blue-heron"
+    filters: []
+
+  - id: wildlife
+    name: "Wildlife"
+    slug: "wildlife"
+    description: "Mammals, reptiles, and other wildlife encounters"
+    cover_image: "photo-gallery/wildlife/bison-winter"
+    filters: []
+
+  - id: landscapes
+    name: "Landscapes"
+    slug: "landscapes"
+    description: "Scenic vistas from mountains to city skylines"
+    cover_image: "photo-gallery/landscapes/mountain-lake"
+    filters:
+      - id: mountains
+        name: "Mountains"
+      - id: waterfalls
+        name: "Waterfalls"
+      - id: cityscapes
+        name: "Cityscapes"
+
+  - id: flora-macro
+    name: "Flora & Macro"
+    slug: "flora-macro"
+    description: "Flowers, plants, and close-up photography"
+    cover_image: "photo-gallery/flora-macro/wildflower-trail"
+    filters: []

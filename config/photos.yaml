@@ -1,0 +1,311 @@
+# Photo metadata database
+# This file is managed via Decap CMS and can also be manually edited.
+
+photos:
+  # === BIRDS ===
+  - id: "bird-001"
+    filename: "great-blue-heron.jpg"
+    slug: "great-blue-heron"
+    category: "birds"
+    filters: []
+    species: "Great Blue Heron"
+    location: "Pacific Northwest"
+    title: "Great Blue Heron"
+    description: "A majestic Great Blue Heron stands tall in its natural wetland habitat."
+    date_taken: "2024-06-22"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/birds/great-blue-heron"
+    width: 1440
+    height: 1440
+
+  - id: "bird-002"
+    filename: "kingfisher.jpg"
+    slug: "kingfisher"
+    category: "birds"
+    filters: []
+    species: "Kingfisher"
+    location: null
+    title: "Kingfisher"
+    description: "A vibrant kingfisher perches on a branch, ready to dive for its next catch."
+    date_taken: "2024-05-15"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/birds/kingfisher"
+    width: 1440
+    height: 1440
+
+  - id: "bird-003"
+    filename: "yellow-flycatcher.jpg"
+    slug: "yellow-flycatcher"
+    category: "birds"
+    filters: []
+    species: "Yellow Flycatcher"
+    location: null
+    title: "Yellow Flycatcher"
+    description: "A bright yellow flycatcher catches the morning light."
+    date_taken: "2024-04-20"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/birds/yellow-flycatcher"
+    width: 1440
+    height: 1440
+
+  - id: "bird-004"
+    filename: "hummingbird-flight.jpg"
+    slug: "hummingbird-in-flight"
+    category: "birds"
+    filters: []
+    species: "Hummingbird"
+    location: null
+    title: "Hummingbird in Flight"
+    description: "A hummingbird hovers mid-flight, wings beating rapidly as it feeds from a flower."
+    date_taken: "2024-08-10"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/birds/hummingbird-flight"
+    width: 1440
+    height: 1116
+
+  - id: "bird-005"
+    filename: "killdeer.jpg"
+    slug: "killdeer"
+    category: "birds"
+    filters: []
+    species: "Killdeer"
+    location: null
+    title: "Killdeer"
+    description: "A killdeer forages along the shoreline, its distinctive double breast bands clearly visible."
+    date_taken: "2024-07-05"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/birds/killdeer"
+    width: 1440
+    height: 1157
+
+  - id: "bird-006"
+    filename: "california-quail.jpg"
+    slug: "california-quail"
+    category: "birds"
+    filters: []
+    species: "California Quail"
+    location: "California"
+    title: "California Quail"
+    description: "A California Quail with its distinctive topknot plume stands alert."
+    date_taken: "2024-03-25"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/birds/california-quail"
+    width: 1440
+    height: 1440
+
+  - id: "bird-007"
+    filename: "black-hooded-oriole.jpg"
+    slug: "black-hooded-oriole"
+    category: "birds"
+    filters: []
+    species: "Black-hooded Oriole"
+    location: null
+    title: "Black-hooded Oriole"
+    description: "A striking black-hooded oriole displays its brilliant yellow and black plumage."
+    date_taken: "2024-02-18"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/birds/black-hooded-oriole"
+    width: 1440
+    height: 1230
+
+  # === WILDLIFE ===
+  - id: "wildlife-001"
+    filename: "bison-winter.jpg"
+    slug: "bison-in-winter"
+    category: "wildlife"
+    filters: []
+    species: "American Bison"
+    location: "Yellowstone National Park"
+    title: "Bison in Winter"
+    description: "An American Bison stands stoically in a snowy winter landscape."
+    date_taken: "2024-01-15"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/wildlife/bison-winter"
+    width: 1440
+    height: 961
+
+  - id: "wildlife-002"
+    filename: "capuchin-monkeys.jpg"
+    slug: "capuchin-monkeys"
+    category: "wildlife"
+    filters: []
+    species: "White-faced Capuchin"
+    location: "Costa Rica"
+    title: "Capuchin Monkeys"
+    description: "A pair of white-faced capuchin monkeys interact in the rainforest canopy."
+    date_taken: "2024-03-10"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/wildlife/capuchin-monkeys"
+    width: 1440
+    height: 961
+
+  - id: "wildlife-003"
+    filename: "vulture-feeding.jpg"
+    slug: "vulture-feeding"
+    category: "wildlife"
+    filters: []
+    species: "Vulture"
+    location: null
+    title: "Vulture Feeding"
+    description: "A vulture spreads its wings during feeding, displaying its impressive wingspan."
+    date_taken: "2024-04-05"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/wildlife/vulture-feeding"
+    width: 1440
+    height: 960
+
+  # === LANDSCAPES ===
+  - id: "landscape-001"
+    filename: "cascading-waterfall.jpg"
+    slug: "cascading-waterfall"
+    category: "landscapes"
+    filters:
+      - waterfalls
+    species: null
+    location: null
+    title: "Cascading Waterfall"
+    description: "A beautiful multi-tiered waterfall cascades down moss-covered rocks."
+    date_taken: "2024-05-20"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/landscapes/cascading-waterfall"
+    width: 1440
+    height: 960
+
+  - id: "landscape-002"
+    filename: "beach-sunset.jpg"
+    slug: "beach-sunset"
+    category: "landscapes"
+    filters: []
+    species: null
+    location: null
+    title: "Beach Sunset"
+    description: "Golden sunset light paints the sky over a serene beach scene."
+    date_taken: "2024-06-15"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/landscapes/beach-sunset"
+    width: 1440
+    height: 960
+
+  - id: "landscape-003"
+    filename: "mountain-lake.jpg"
+    slug: "mountain-lake"
+    category: "landscapes"
+    filters:
+      - mountains
+    species: null
+    location: null
+    title: "Mountain Lake"
+    description: "A pristine mountain lake reflects the surrounding peaks in its still waters."
+    date_taken: "2024-07-08"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/landscapes/mountain-lake"
+    width: 1080
+    height: 720
+
+  - id: "landscape-004"
+    filename: "forest-waterfall.jpg"
+    slug: "forest-waterfall"
+    category: "landscapes"
+    filters:
+      - waterfalls
+    species: null
+    location: null
+    title: "Forest Waterfall"
+    description: "A hidden waterfall tumbles through a lush forest setting."
+    date_taken: "2024-04-30"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/landscapes/forest-waterfall"
+    width: 1440
+    height: 961
+
+  - id: "landscape-005"
+    filename: "mount-hood-wildflowers.jpg"
+    slug: "mount-hood-wildflowers"
+    category: "landscapes"
+    filters:
+      - mountains
+    species: null
+    location: "Mount Hood, Oregon"
+    title: "Mount Hood with Wildflowers"
+    description: "Mount Hood rises majestically above a meadow filled with colorful wildflowers."
+    date_taken: "2024-07-22"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/landscapes/mount-hood-wildflowers"
+    width: 1440
+    height: 878
+
+  - id: "landscape-006"
+    filename: "full-moon.jpg"
+    slug: "full-moon"
+    category: "landscapes"
+    filters: []
+    species: null
+    location: null
+    title: "Full Moon"
+    description: "A brilliant full moon illuminates the night sky."
+    date_taken: "2024-08-19"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/landscapes/full-moon"
+    width: 1069
+    height: 838
+
+  # === FLORA & MACRO ===
+  - id: "flora-001"
+    filename: "wildflower-trail.jpg"
+    slug: "wildflower-trail"
+    category: "flora-macro"
+    filters: []
+    species: null
+    location: null
+    title: "Wildflower Trail"
+    description: "A winding trail through a field of blooming wildflowers."
+    date_taken: "2024-06-01"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/flora-macro/wildflower-trail"
+    width: 1440
+    height: 878
+
+  - id: "flora-002"
+    filename: "wetland-grasses.jpg"
+    slug: "wetland-grasses"
+    category: "flora-macro"
+    filters: []
+    species: null
+    location: null
+    title: "Wetland Grasses"
+    description: "Delicate wetland grasses sway gently in the morning breeze."
+    date_taken: "2024-05-10"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/flora-macro/wetland-grasses"
+    width: 1080
+    height: 759
+
+  - id: "flora-003"
+    filename: "autumn-tunnel.jpg"
+    slug: "autumn-tunnel"
+    category: "flora-macro"
+    filters: []
+    species: null
+    location: null
+    title: "Autumn Tunnel"
+    description: "A tree-lined path creates a natural tunnel of golden autumn foliage."
+    date_taken: "2024-10-15"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/flora-macro/autumn-tunnel"
+    width: 1080
+    height: 720
+
+  - id: "flora-004"
+    filename: "waterfall-forest.jpg"
+    slug: "waterfall-forest"
+    category: "flora-macro"
+    filters: []
+    species: null
+    location: null
+    title: "Waterfall in the Forest"
+    description: "A gentle waterfall flows through a verdant forest setting."
+    date_taken: "2024-04-25"
+    available_for_print: true
+    cloudinary_id: "photo-gallery/flora-macro/waterfall-forest"
+    width: 1440
+    height: 960

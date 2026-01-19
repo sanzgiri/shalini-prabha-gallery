@@ -1,0 +1,24 @@
+site_name: "Shalini Prabha"
+tagline: "Wildlife & Nature Photography"
+
+hero:
+  image: "photo-gallery/hero"
+  alt: "Mountain lake landscape"
+
+photo_wall:
+  mode: "recent"
+  count: 12
+
+social:
+  instagram: "https://instagram.com/ginnigazes"
+
+analytics:
+  google_analytics_id: ""
+
+contact:
+  form_name: "print-inquiry"
+
+# Cloudinary configuration
+cloudinary:
+  cloud_name: "dsilndqt6"
+  base_url: "https://res.cloudinary.com/dsilndqt6/image/upload"

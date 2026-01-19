@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Astro
+.astro/
+
+# Cloudinary credentials (never commit)
+scripts/cloudinary-urls.json
+
+# Large photo directories (photos hosted on Cloudinary)
+/photos/
+/__MACOSX/
+
+# Keep public/photos sample images for development reference

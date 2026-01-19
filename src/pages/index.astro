@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getSiteConfig, getPhotoWallPhotos, getCloudinaryUrl } from '../utils/config';
+
+const siteConfig = getSiteConfig();
+const photos = getPhotoWallPhotos();
+
+// Generate hero image URL from Cloudinary
+const heroUrl = getCloudinaryUrl(siteConfig.hero.image, {
+  width: 1920,
+  quality: 'auto',
+  format: 'auto',
+});
+---
+
+<BaseLayout>
+  <section class="hero">
+    <img src={heroUrl} alt={siteConfig.hero.alt} />
+    <div class="hero-content">
+      <h1>{siteConfig.site_name}</h1>
+      <p>{siteConfig.tagline}</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Recent Work</h2>
+      <div class="photo-grid">
+        {photos.map((photo) => {
+          const imageUrl = getCloudinaryUrl(photo.cloudinary_id, {
+            width: 600,
+            quality: 'auto',
+            format: 'auto',
+          });
+          return (
+            <a href={`/${photo.category}/`} class="photo-card">
+              <img
+                src={imageUrl}
+                alt={photo.title}
+                loading="lazy"
+                width={photo.width}
+                height={photo.height}
+              />
+              <div class="overlay">
+                <span class="photo-title">{photo.title}</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: #666;
+  }
+</style>

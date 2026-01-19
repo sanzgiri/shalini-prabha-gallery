@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCategoryBySlug, getPhotosByCategory, getCloudinaryUrl } from '../../utils/config';
+
+const category = getCategoryBySlug('landscapes');
+const photos = getPhotosByCategory('landscapes');
+
+// Get filters from the category config
+const filters = [
+  { id: 'all', name: 'All' },
+  ...(category?.filters || []),
+];
+---
+
+<BaseLayout
+  title={category?.name || 'Landscapes'}
+  description={category?.description || 'Landscape photography by Shalini Prabha'}
+>
+  <div class="category-header">
+    <div class="container">
+      <h1>{category?.name}</h1>
+      <p>{category?.description}</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="filter-bar">
+        {filters.map((filter) => (
+          <button
+            class:list={['filter-btn', { active: filter.id === 'all' }]}
+            data-filter={filter.id}
+          >
+            {filter.name}
+          </button>
+        ))}
+      </div>
+
+      <div class="photo-grid" id="photo-grid">
+        {photos.map((photo) => {
+          const imageUrl = getCloudinaryUrl(photo.cloudinary_id, {
+            width: 600,
+            quality: 'auto',
+            format: 'auto',
+          });
+          const filterValue = photo.filters.length > 0 ? photo.filters[0] : 'none';
+          return (
+            <a
+              href={`/landscapes/${photo.slug}/`}
+              class="photo-card"
+              data-filter={filterValue}
+            >
+              <img
+                src={imageUrl}
+                alt={photo.title}
+                loading="lazy"
+                width={photo.width}
+                height={photo.height}
+              />
+              <div class="overlay">
+                <span class="photo-title">{photo.title}</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .filter-bar {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 0.5rem 1.25rem;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: #666;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover {
+    border-color: #1a1a1a;
+    color: #1a1a1a;
+  }
+
+  .filter-btn.active {
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+    color: white;
+  }
+
+  .photo-card.hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.photo-card');
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filter = btn.getAttribute('data-filter');
+
+      // Update active button
+      buttons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Filter photos
+      cards.forEach((card) => {
+        const cardFilter = card.getAttribute('data-filter');
+        if (filter === 'all' || cardFilter === filter) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    });
+  });
+</script>

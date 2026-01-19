@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Read about.md content
+const aboutPath = path.join(process.cwd(), 'config', 'about.md');
+const aboutContent = fs.readFileSync(aboutPath, 'utf-8');
+
+// Simple markdown to HTML conversion for basic elements
+function parseMarkdown(md: string): string {
+  return md
+    // Headers
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    // Bold
+    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.*)\*/gim, '<em>$1</em>')
+    // Links
+    .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2">$1</a>')
+    // Paragraphs
+    .split('\n\n')
+    .map(p => {
+      p = p.trim();
+      if (!p) return '';
+      if (p.startsWith('<h') || p.startsWith('<ul') || p.startsWith('<ol')) return p;
+      return `<p>${p}</p>`;
+    })
+    .join('\n');
+}
+
+const htmlContent = parseMarkdown(aboutContent);
+---
+
+<BaseLayout
+  title="About"
+  description="Learn about Shalini Prabha, a wildlife and nature photographer based in the Pacific Northwest."
+>
+  <div class="page-content">
+    <div class="container">
+      <article class="prose" set:html={htmlContent} />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .prose {
+    padding-top: 2rem;
+  }
+
+  .prose :global(h1) {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .prose :global(h2) {
+    font-size: 1.5rem;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+
+  .prose :global(p) {
+    margin-bottom: 1.5rem;
+    color: #444;
+  }
+
+  .prose :global(a) {
+    color: #1a1a1a;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .prose :global(a:hover) {
+    color: #666;
+  }
+</style>
