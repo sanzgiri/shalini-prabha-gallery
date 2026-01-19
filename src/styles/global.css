@@ -132,6 +132,10 @@ p {
   opacity: 1;
 }
 
+.photo-card.hidden {
+  display: none;
+}
+
 /* Hero Section */
 .hero {
   position: relative;
