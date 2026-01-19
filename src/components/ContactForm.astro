@@ -1,0 +1,339 @@
+---
+import { getSiteConfig } from '../utils/config';
+
+interface Props {
+  photoSlug?: string;
+  photoTitle?: string;
+}
+
+const { photoSlug, photoTitle } = Astro.props;
+const siteConfig = getSiteConfig();
+const formName = siteConfig.contact?.form_name || 'contact';
+
+// Pre-populate subject if coming from a photo page
+const defaultSubject = photoTitle ? `Print Inquiry: ${photoTitle}` : '';
+const defaultMessage = photoSlug
+  ? `I'm interested in purchasing a print of "${photoTitle}".\n\nPlease let me know about available sizes and pricing.`
+  : '';
+---
+
+<div class="contact-form-wrapper">
+  <form
+    name={formName}
+    method="POST"
+    data-netlify="true"
+    netlify-honeypot="bot-field"
+    class="contact-form"
+    id="contact-form"
+  >
+    <input type="hidden" name="form-name" value={formName} />
+
+    {/* Honeypot field for spam prevention */}
+    <p class="honeypot">
+      <label>
+        Don't fill this out if you're human: <input name="bot-field" tabindex="-1" autocomplete="off" />
+      </label>
+    </p>
+
+    {/* Hidden field for photo reference */}
+    {photoSlug && <input type="hidden" name="photo-reference" value={photoSlug} />}
+
+    <div class="form-group">
+      <label for="name">Name <span class="required">*</span></label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        required
+        autocomplete="name"
+        placeholder="Your name"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email <span class="required">*</span></label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        required
+        autocomplete="email"
+        placeholder="your@email.com"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="subject">Subject <span class="required">*</span></label>
+      <input
+        type="text"
+        id="subject"
+        name="subject"
+        required
+        value={defaultSubject}
+        placeholder="What's this about?"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="message">Message <span class="required">*</span></label>
+      <textarea
+        id="message"
+        name="message"
+        rows="6"
+        required
+        placeholder="Your message..."
+      >{defaultMessage}</textarea>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submit-btn">
+      <span class="btn-text">Send Message</span>
+      <span class="btn-loading">Sending...</span>
+    </button>
+  </form>
+
+  <div class="form-success" id="form-success">
+    <div class="success-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
+    <h3>Message Sent!</h3>
+    <p>Thank you for reaching out. I'll get back to you as soon as possible.</p>
+    <button type="button" class="reset-btn" id="reset-btn">Send Another Message</button>
+  </div>
+
+  <div class="form-error" id="form-error">
+    <div class="error-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
+    <h3>Something went wrong</h3>
+    <p>Please try again or email directly.</p>
+    <button type="button" class="retry-btn" id="retry-btn">Try Again</button>
+  </div>
+</div>
+
+<style>
+  .contact-form-wrapper {
+    position: relative;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .contact-form.hidden {
+    display: none;
+  }
+
+  .honeypot {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .required {
+    color: #dc2626;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: 0.875rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #fafafa;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+    background: #fff;
+  }
+
+  .form-group input::placeholder,
+  .form-group textarea::placeholder {
+    color: #999;
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .submit-btn {
+    padding: 1rem 2rem;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    position: relative;
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    background: #333;
+  }
+
+  .submit-btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .btn-loading {
+    display: none;
+  }
+
+  .submit-btn.loading .btn-text {
+    display: none;
+  }
+
+  .submit-btn.loading .btn-loading {
+    display: inline;
+  }
+
+  /* Success state */
+  .form-success,
+  .form-error {
+    display: none;
+    text-align: center;
+    padding: 3rem 2rem;
+    background: #fafafa;
+    border-radius: 8px;
+  }
+
+  .form-success.visible,
+  .form-error.visible {
+    display: block;
+  }
+
+  .success-icon {
+    color: #16a34a;
+    margin-bottom: 1rem;
+  }
+
+  .error-icon {
+    color: #dc2626;
+    margin-bottom: 1rem;
+  }
+
+  .form-success h3,
+  .form-error h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-success p,
+  .form-error p {
+    color: #666;
+    margin-bottom: 1.5rem;
+  }
+
+  .reset-btn,
+  .retry-btn {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    color: #1a1a1a;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover,
+  .retry-btn:hover {
+    border-color: #1a1a1a;
+    background: #1a1a1a;
+    color: white;
+  }
+</style>
+
+<script>
+  function initContactForm() {
+    const form = document.getElementById('contact-form') as HTMLFormElement;
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+    const successEl = document.getElementById('form-success');
+    const errorEl = document.getElementById('form-error');
+    const resetBtn = document.getElementById('reset-btn');
+    const retryBtn = document.getElementById('retry-btn');
+
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Show loading state
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+
+      try {
+        const formData = new FormData(form);
+        const response = await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(formData as any).toString(),
+        });
+
+        if (response.ok) {
+          form.classList.add('hidden');
+          successEl?.classList.add('visible');
+        } else {
+          throw new Error('Form submission failed');
+        }
+      } catch (error) {
+        form.classList.add('hidden');
+        errorEl?.classList.add('visible');
+      } finally {
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Reset button handler
+    resetBtn?.addEventListener('click', () => {
+      form.reset();
+      form.classList.remove('hidden');
+      successEl?.classList.remove('visible');
+    });
+
+    // Retry button handler
+    retryBtn?.addEventListener('click', () => {
+      form.classList.remove('hidden');
+      errorEl?.classList.remove('visible');
+    });
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', initContactForm);
+  document.addEventListener('astro:page-load', initContactForm);
+</script>
