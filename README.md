@@ -9,7 +9,7 @@ Photography portfolio and print inquiry website built with Astro and hosted on N
 ### Documentation
 
 1. **REQUIREMENTS.md** - High-level project requirements and specs
-2. **IMPLEMENTATION_GUIDE.md** - Detailed phased build instructions with acceptance criteria
+2. **IMPLEMENTATION\_GUIDE.md** - Detailed phased build instructions with acceptance criteria
 
 ### Sample Data
 

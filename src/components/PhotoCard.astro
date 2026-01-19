@@ -1,0 +1,101 @@
+---
+import { getCloudinaryUrl } from '../utils/config';
+import type { Photo } from '../types';
+
+interface Props {
+  photo: Photo;
+  category: string;
+  showLightbox?: boolean;
+}
+
+const { photo, category, showLightbox = true } = Astro.props;
+
+const thumbnailUrl = getCloudinaryUrl(photo.cloudinary_id, {
+  width: 600,
+  quality: 'auto',
+  format: 'auto',
+});
+
+const fullUrl = getCloudinaryUrl(photo.cloudinary_id, {
+  width: 1600,
+  quality: 'auto',
+  format: 'auto',
+});
+
+const href = showLightbox ? '#' : `/${category}/${photo.slug}/`;
+---
+
+<div
+  class="photo-card"
+  data-lightbox={showLightbox ? 'true' : undefined}
+  data-full-url={fullUrl}
+  data-title={photo.title}
+  data-description={photo.description}
+  data-species={photo.species || ''}
+  data-location={photo.location || ''}
+  data-href={`/${category}/${photo.slug}/`}
+  data-filter={photo.filters?.length ? photo.filters.join(',') : undefined}
+>
+  <a href={href} class="photo-link">
+    <img
+      src={thumbnailUrl}
+      alt={photo.title}
+      loading="lazy"
+      width={photo.width}
+      height={photo.height}
+    />
+    <div class="overlay">
+      <span class="photo-title">{photo.title}</span>
+    </div>
+  </a>
+</div>
+
+<style>
+  .photo-card {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+
+  .photo-link {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+
+  .photo-link img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0) 50%
+    );
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .photo-link:hover .overlay {
+    opacity: 1;
+  }
+
+  .photo-link:hover img {
+    transform: scale(1.03);
+  }
+
+  .photo-title {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+</style>

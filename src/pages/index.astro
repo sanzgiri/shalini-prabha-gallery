@@ -1,11 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import MasonryGrid from '../components/MasonryGrid.astro';
+import Lightbox from '../components/Lightbox.astro';
 import { getSiteConfig, getPhotoWallPhotos, getCloudinaryUrl } from '../utils/config';
 
 const siteConfig = getSiteConfig();
 const photos = getPhotoWallPhotos();
 
-// Generate hero image URL from Cloudinary
 const heroUrl = getCloudinaryUrl(siteConfig.hero.image, {
   width: 1920,
   quality: 'auto',
@@ -25,31 +26,11 @@ const heroUrl = getCloudinaryUrl(siteConfig.hero.image, {
   <section class="section">
     <div class="container">
       <h2 class="section-title">Recent Work</h2>
-      <div class="photo-grid">
-        {photos.map((photo) => {
-          const imageUrl = getCloudinaryUrl(photo.cloudinary_id, {
-            width: 600,
-            quality: 'auto',
-            format: 'auto',
-          });
-          return (
-            <a href={`/${photo.category}/`} class="photo-card">
-              <img
-                src={imageUrl}
-                alt={photo.title}
-                loading="lazy"
-                width={photo.width}
-                height={photo.height}
-              />
-              <div class="overlay">
-                <span class="photo-title">{photo.title}</span>
-              </div>
-            </a>
-          );
-        })}
-      </div>
+      <MasonryGrid photos={photos} />
     </div>
   </section>
+
+  <Lightbox />
 </BaseLayout>
 
 <style>

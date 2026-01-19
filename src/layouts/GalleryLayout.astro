@@ -1,0 +1,64 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Lightbox from '../components/Lightbox.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  categoryName: string;
+  categoryDescription?: string;
+  showLightbox?: boolean;
+}
+
+const {
+  title,
+  description,
+  categoryName,
+  categoryDescription,
+  showLightbox = true,
+} = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="category-header">
+    <div class="container">
+      <h1>{categoryName}</h1>
+      {categoryDescription && <p>{categoryDescription}</p>}
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <slot name="filters" />
+      <slot />
+    </div>
+  </section>
+
+  {showLightbox && <Lightbox />}
+</BaseLayout>
+
+<style>
+  .category-header {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    background: linear-gradient(to bottom, #fafafa, #fff);
+  }
+
+  .category-header h1 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    margin-bottom: 0.5rem;
+    color: #1a1a1a;
+  }
+
+  .category-header p {
+    font-size: 1.1rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .photo-card.hidden {
+    display: none;
+  }
+</style>

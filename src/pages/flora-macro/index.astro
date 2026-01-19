@@ -1,47 +1,17 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCategoryBySlug, getPhotosByCategory, getCloudinaryUrl } from '../../utils/config';
+import GalleryLayout from '../../layouts/GalleryLayout.astro';
+import MasonryGrid from '../../components/MasonryGrid.astro';
+import { getCategoryBySlug, getPhotosByCategory } from '../../utils/config';
 
 const category = getCategoryBySlug('flora-macro');
 const photos = getPhotosByCategory('flora-macro');
 ---
 
-<BaseLayout
+<GalleryLayout
   title={category?.name || 'Flora & Macro'}
   description={category?.description || 'Flora and macro photography by Shalini Prabha'}
+  categoryName={category?.name || 'Flora & Macro'}
+  categoryDescription={category?.description}
 >
-  <div class="category-header">
-    <div class="container">
-      <h1>{category?.name}</h1>
-      <p>{category?.description}</p>
-    </div>
-  </div>
-
-  <section class="section">
-    <div class="container">
-      <div class="photo-grid">
-        {photos.map((photo) => {
-          const imageUrl = getCloudinaryUrl(photo.cloudinary_id, {
-            width: 600,
-            quality: 'auto',
-            format: 'auto',
-          });
-          return (
-            <a href={`/flora-macro/${photo.slug}/`} class="photo-card">
-              <img
-                src={imageUrl}
-                alt={photo.title}
-                loading="lazy"
-                width={photo.width}
-                height={photo.height}
-              />
-              <div class="overlay">
-                <span class="photo-title">{photo.title}</span>
-              </div>
-            </a>
-          );
-        })}
-      </div>
-    </div>
-  </section>
-</BaseLayout>
+  <MasonryGrid photos={photos} category="flora-macro" />
+</GalleryLayout>

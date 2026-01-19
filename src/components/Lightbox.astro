@@ -1,0 +1,354 @@
+---
+// Lightbox component - client-side interactive modal for viewing photos
+---
+
+<div id="lightbox" class="lightbox" aria-hidden="true">
+  <div class="lightbox-overlay"></div>
+
+  <button class="lightbox-close" aria-label="Close lightbox">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+
+  <button class="lightbox-nav lightbox-prev" aria-label="Previous photo">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+  </button>
+
+  <button class="lightbox-nav lightbox-next" aria-label="Next photo">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </button>
+
+  <div class="lightbox-content">
+    <figure class="lightbox-figure">
+      <img id="lightbox-image" src="" alt="" />
+    </figure>
+
+    <div class="lightbox-info">
+      <h2 id="lightbox-title"></h2>
+      <p id="lightbox-species" class="lightbox-meta"></p>
+      <p id="lightbox-location" class="lightbox-meta"></p>
+      <p id="lightbox-description"></p>
+      <a id="lightbox-link" href="#" class="lightbox-details-link">View Details &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .lightbox.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .lightbox-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+
+  .lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    color: white;
+    padding: 1rem;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+
+  .lightbox-nav:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .lightbox-prev {
+    left: 1rem;
+  }
+
+  .lightbox-next {
+    right: 1rem;
+  }
+
+  .lightbox-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .lightbox-content {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    max-width: 90vw;
+    max-height: 90vh;
+    gap: 1rem;
+  }
+
+  @media (min-width: 1024px) {
+    .lightbox-content {
+      flex-direction: row;
+      align-items: flex-start;
+      max-width: 85vw;
+    }
+  }
+
+  .lightbox-figure {
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .lightbox-figure img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 4px;
+  }
+
+  @media (min-width: 1024px) {
+    .lightbox-figure img {
+      max-height: 80vh;
+    }
+  }
+
+  .lightbox-info {
+    color: white;
+    padding: 1rem;
+    max-width: 300px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 1023px) {
+    .lightbox-info {
+      max-width: 100%;
+      padding: 0.5rem 0;
+    }
+  }
+
+  .lightbox-info h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .lightbox-meta {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.5rem;
+  }
+
+  .lightbox-meta:empty {
+    display: none;
+  }
+
+  #lightbox-description {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 1rem;
+  }
+
+  .lightbox-details-link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: white;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .lightbox-details-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Hide scrollbar when lightbox is open */
+  :global(body.lightbox-open) {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  interface PhotoData {
+    fullUrl: string;
+    title: string;
+    description: string;
+    species: string;
+    location: string;
+    href: string;
+  }
+
+  class LightboxController {
+    private lightbox: HTMLElement;
+    private image: HTMLImageElement;
+    private titleEl: HTMLElement;
+    private speciesEl: HTMLElement;
+    private locationEl: HTMLElement;
+    private descriptionEl: HTMLElement;
+    private linkEl: HTMLAnchorElement;
+    private prevBtn: HTMLButtonElement;
+    private nextBtn: HTMLButtonElement;
+    private photos: PhotoData[] = [];
+    private currentIndex: number = 0;
+
+    constructor() {
+      this.lightbox = document.getElementById('lightbox')!;
+      this.image = document.getElementById('lightbox-image') as HTMLImageElement;
+      this.titleEl = document.getElementById('lightbox-title')!;
+      this.speciesEl = document.getElementById('lightbox-species')!;
+      this.locationEl = document.getElementById('lightbox-location')!;
+      this.descriptionEl = document.getElementById('lightbox-description')!;
+      this.linkEl = document.getElementById('lightbox-link') as HTMLAnchorElement;
+      this.prevBtn = this.lightbox.querySelector('.lightbox-prev') as HTMLButtonElement;
+      this.nextBtn = this.lightbox.querySelector('.lightbox-next') as HTMLButtonElement;
+
+      this.init();
+    }
+
+    private init() {
+      // Collect all photo cards with lightbox enabled
+      const cards = document.querySelectorAll('.photo-card[data-lightbox="true"]');
+
+      cards.forEach((card, index) => {
+        const el = card as HTMLElement;
+        this.photos.push({
+          fullUrl: el.dataset.fullUrl || '',
+          title: el.dataset.title || '',
+          description: el.dataset.description || '',
+          species: el.dataset.species || '',
+          location: el.dataset.location || '',
+          href: el.dataset.href || '#',
+        });
+
+        const link = card.querySelector('.photo-link');
+        link?.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.open(index);
+        });
+      });
+
+      // Close button
+      this.lightbox.querySelector('.lightbox-close')?.addEventListener('click', () => this.close());
+
+      // Overlay click
+      this.lightbox.querySelector('.lightbox-overlay')?.addEventListener('click', () => this.close());
+
+      // Navigation
+      this.prevBtn.addEventListener('click', () => this.prev());
+      this.nextBtn.addEventListener('click', () => this.next());
+
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        if (!this.lightbox.classList.contains('active')) return;
+
+        switch (e.key) {
+          case 'Escape':
+            this.close();
+            break;
+          case 'ArrowLeft':
+            this.prev();
+            break;
+          case 'ArrowRight':
+            this.next();
+            break;
+        }
+      });
+    }
+
+    private open(index: number) {
+      this.currentIndex = index;
+      this.updateContent();
+      this.lightbox.classList.add('active');
+      this.lightbox.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('lightbox-open');
+    }
+
+    private close() {
+      this.lightbox.classList.remove('active');
+      this.lightbox.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('lightbox-open');
+    }
+
+    private prev() {
+      if (this.currentIndex > 0) {
+        this.currentIndex--;
+        this.updateContent();
+      }
+    }
+
+    private next() {
+      if (this.currentIndex < this.photos.length - 1) {
+        this.currentIndex++;
+        this.updateContent();
+      }
+    }
+
+    private updateContent() {
+      const photo = this.photos[this.currentIndex];
+
+      this.image.src = photo.fullUrl;
+      this.image.alt = photo.title;
+      this.titleEl.textContent = photo.title;
+      this.descriptionEl.textContent = photo.description;
+      this.linkEl.href = photo.href;
+
+      if (photo.species) {
+        this.speciesEl.innerHTML = `<strong>Species:</strong> ${photo.species}`;
+      } else {
+        this.speciesEl.textContent = '';
+      }
+
+      if (photo.location) {
+        this.locationEl.innerHTML = `<strong>Location:</strong> ${photo.location}`;
+      } else {
+        this.locationEl.textContent = '';
+      }
+
+      // Update nav buttons
+      this.prevBtn.disabled = this.currentIndex === 0;
+      this.nextBtn.disabled = this.currentIndex === this.photos.length - 1;
+    }
+  }
+
+  // Initialize when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    new LightboxController();
+  });
+
+  // Also initialize on Astro page transitions
+  document.addEventListener('astro:page-load', () => {
+    new LightboxController();
+  });
+</script>
