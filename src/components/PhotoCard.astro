@@ -34,7 +34,7 @@ const href = showLightbox ? '#' : `/${category}/${photo.slug}/`;
   data-species={photo.species || ''}
   data-location={photo.location || ''}
   data-href={`/${category}/${photo.slug}/`}
-  data-filter={photo.filters?.length ? photo.filters.join(',') : undefined}
+  data-filter={photo.filters?.length ? photo.filters.join(',') : 'none'}
 >
   <a href={href} class="photo-link">
     <img

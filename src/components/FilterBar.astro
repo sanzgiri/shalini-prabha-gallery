@@ -61,7 +61,7 @@ const allFilters = [{ id: 'all', name: 'All' }, ...filters];
 <script>
   function initFilterBar() {
     const buttons = document.querySelectorAll('.filter-btn');
-    const cards = document.querySelectorAll('.photo-card[data-filter]');
+    const cards = document.querySelectorAll('.photo-card');
 
     buttons.forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -71,9 +71,10 @@ const allFilters = [{ id: 'all', name: 'All' }, ...filters];
         buttons.forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
 
-        // Filter photos
+        // Filter photos - show all when 'all' selected, otherwise match specific filter
         cards.forEach((card) => {
-          const cardFilters = card.getAttribute('data-filter')?.split(',') || [];
+          const cardFilter = card.getAttribute('data-filter') || 'none';
+          const cardFilters = cardFilter.split(',');
           if (filter === 'all' || cardFilters.includes(filter!)) {
             card.classList.remove('hidden');
           } else {
