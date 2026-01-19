@@ -1,0 +1,395 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Search"
+  description="Search through the photography collection by title, species, location, or description."
+>
+  <div class="page-content">
+    <div class="container">
+      <div class="search-page">
+        <h1>Search</h1>
+
+        <form class="search-form-large" id="search-form-page">
+          <input
+            type="search"
+            name="q"
+            placeholder="Search by species, location, title..."
+            class="search-input-large"
+            id="search-input-page"
+            autocomplete="off"
+          />
+          <button type="submit" class="search-btn">Search</button>
+        </form>
+
+        <div class="search-status" id="search-status"></div>
+
+        <div class="search-results" id="search-results">
+          <div class="masonry-grid" id="results-grid"></div>
+        </div>
+
+        <div class="no-results" id="no-results">
+          <p>No photos found matching your search.</p>
+          <p class="hint">Try searching for a species name, location, or description.</p>
+        </div>
+
+        <div class="loading" id="loading">
+          <p>Searching...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .search-page {
+    padding: 3rem 0;
+    min-height: 60vh;
+  }
+
+  .search-page h1 {
+    font-size: 2rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+  }
+
+  .search-form-large {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+  }
+
+  .search-input-large {
+    flex: 1;
+    padding: 1rem 1.25rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fafafa;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+
+  .search-input-large:focus {
+    outline: none;
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+    background: white;
+  }
+
+  .search-input-large::placeholder {
+    color: #999;
+  }
+
+  .search-btn {
+    padding: 1rem 2rem;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+
+  .search-btn:hover {
+    background: #333;
+  }
+
+  .search-status {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .search-results {
+    display: none;
+  }
+
+  .search-results.visible {
+    display: block;
+  }
+
+  .masonry-grid {
+    column-count: 3;
+    column-gap: 1rem;
+  }
+
+  @media (max-width: 900px) {
+    .masonry-grid {
+      column-count: 2;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .masonry-grid {
+      column-count: 1;
+    }
+
+    .search-form-large {
+      flex-direction: column;
+    }
+
+    .search-btn {
+      width: 100%;
+    }
+  }
+
+  .no-results {
+    display: none;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+  }
+
+  .no-results.visible {
+    display: block;
+  }
+
+  .no-results .hint {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+  }
+
+  .loading.visible {
+    display: block;
+  }
+
+  /* Photo card styles for search results */
+  .photo-card {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+
+  .photo-card a {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+
+  .photo-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .photo-card .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0) 50%
+    );
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .photo-card a:hover .overlay {
+    opacity: 1;
+  }
+
+  .photo-card a:hover img {
+    transform: scale(1.03);
+  }
+
+  .photo-card .photo-title {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .photo-card .photo-meta {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+  }
+</style>
+
+<script>
+  import Fuse from 'fuse.js';
+
+  interface SearchResult {
+    id: string;
+    slug: string;
+    category: string;
+    categoryName: string;
+    title: string;
+    description: string;
+    species: string;
+    location: string;
+    filters: string[];
+    cloudinary_id: string;
+    width: number;
+    height: number;
+  }
+
+  let searchIndex: SearchResult[] = [];
+  let fuse: Fuse<SearchResult> | null = null;
+  let isInitialized = false;
+
+  const CLOUDINARY_BASE = 'https://res.cloudinary.com/dsilndqt6/image/upload';
+
+  function getCloudinaryUrl(cloudinaryId: string, width: number = 600): string {
+    return `${CLOUDINARY_BASE}/w_${width},q_auto,f_auto/${cloudinaryId}`;
+  }
+
+  async function initSearch() {
+    if (isInitialized) return;
+
+    try {
+      const response = await fetch('/search-index.json');
+      searchIndex = await response.json();
+
+      fuse = new Fuse(searchIndex, {
+        keys: [
+          { name: 'title', weight: 2 },
+          { name: 'species', weight: 2 },
+          { name: 'location', weight: 1.5 },
+          { name: 'description', weight: 1 },
+          { name: 'categoryName', weight: 0.5 },
+        ],
+        threshold: 0.3,
+        ignoreLocation: true,
+        includeScore: true,
+      });
+
+      isInitialized = true;
+
+      // Check for initial query
+      const params = new URLSearchParams(window.location.search);
+      const query = params.get('q');
+      if (query) {
+        const input = document.getElementById('search-input-page') as HTMLInputElement;
+        if (input) input.value = query;
+        performSearch(query);
+      }
+    } catch (error) {
+      console.error('Failed to load search index:', error);
+    }
+  }
+
+  function performSearch(query: string) {
+    if (!fuse || !query.trim()) {
+      hideAll();
+      return;
+    }
+
+    const loadingEl = document.getElementById('loading');
+    const statusEl = document.getElementById('search-status');
+    const resultsEl = document.getElementById('search-results');
+    const noResultsEl = document.getElementById('no-results');
+    const gridEl = document.getElementById('results-grid');
+
+    // Show loading
+    loadingEl?.classList.add('visible');
+    resultsEl?.classList.remove('visible');
+    noResultsEl?.classList.remove('visible');
+
+    // Perform search
+    const results = fuse.search(query.trim(), { limit: 50 });
+
+    // Hide loading
+    loadingEl?.classList.remove('visible');
+
+    if (results.length === 0) {
+      noResultsEl?.classList.add('visible');
+      if (statusEl) statusEl.textContent = '';
+      return;
+    }
+
+    // Update status
+    if (statusEl) {
+      statusEl.textContent = `Found ${results.length} photo${results.length !== 1 ? 's' : ''} for "${query}"`;
+    }
+
+    // Render results
+    if (gridEl) {
+      gridEl.innerHTML = results
+        .map(({ item }) => {
+          const thumbnailUrl = getCloudinaryUrl(item.cloudinary_id, 600);
+          const meta = [item.species, item.location].filter(Boolean).join(' · ');
+
+          return `
+            <div class="photo-card">
+              <a href="/${item.category}/${item.slug}/">
+                <img
+                  src="${thumbnailUrl}"
+                  alt="${escapeHtml(item.title)}"
+                  loading="lazy"
+                  width="${item.width}"
+                  height="${item.height}"
+                />
+                <div class="overlay">
+                  <span class="photo-title">${escapeHtml(item.title)}</span>
+                  ${meta ? `<span class="photo-meta">${escapeHtml(meta)}</span>` : ''}
+                </div>
+              </a>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    resultsEl?.classList.add('visible');
+  }
+
+  function hideAll() {
+    document.getElementById('search-results')?.classList.remove('visible');
+    document.getElementById('no-results')?.classList.remove('visible');
+    document.getElementById('loading')?.classList.remove('visible');
+    const statusEl = document.getElementById('search-status');
+    if (statusEl) statusEl.textContent = '';
+  }
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function setupEventListeners() {
+    const form = document.getElementById('search-form-page');
+    const input = document.getElementById('search-input-page') as HTMLInputElement;
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const query = input?.value || '';
+      if (query.trim()) {
+        // Update URL without reload
+        const url = new URL(window.location.href);
+        url.searchParams.set('q', query);
+        window.history.pushState({}, '', url.toString());
+        performSearch(query);
+      }
+    });
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    initSearch();
+    setupEventListeners();
+  });
+
+  document.addEventListener('astro:page-load', () => {
+    isInitialized = false;
+    initSearch();
+    setupEventListeners();
+  });
+</script>

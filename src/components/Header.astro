@@ -1,5 +1,6 @@
 ---
 import { getNavItems, getSiteConfig } from '../utils/config';
+import SearchBar from './SearchBar.astro';
 
 const navItems = getNavItems();
 const siteConfig = getSiteConfig();
@@ -32,6 +33,8 @@ const currentPath = Astro.url.pathname;
         </li>
       </ul>
     </nav>
+
+    <SearchBar />
 
     <button
       class="menu-toggle"

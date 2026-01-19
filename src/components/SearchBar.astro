@@ -1,0 +1,188 @@
+---
+// SearchBar component - expandable search for header
+---
+
+<div class="search-bar" id="search-bar">
+  <button
+    type="button"
+    class="search-toggle"
+    id="search-toggle"
+    aria-label="Toggle search"
+    aria-expanded="false"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+  </button>
+
+  <form action="/search/" method="GET" class="search-form" id="search-form">
+    <input
+      type="search"
+      name="q"
+      placeholder="Search photos..."
+      class="search-input"
+      id="search-input"
+      autocomplete="off"
+    />
+    <button type="submit" class="search-submit" aria-label="Search">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+    </button>
+    <button type="button" class="search-close" id="search-close" aria-label="Close search">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </form>
+</div>
+
+<style>
+  .search-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: #666;
+    transition: color 0.2s;
+  }
+
+  .search-toggle:hover {
+    color: #1a1a1a;
+  }
+
+  .search-form {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .search-bar.expanded .search-toggle {
+    display: none;
+  }
+
+  .search-bar.expanded .search-form {
+    display: flex;
+    align-items: center;
+  }
+
+  .search-input {
+    width: 250px;
+    padding: 0.75rem 1rem;
+    border: none;
+    font-size: 0.95rem;
+    background: transparent;
+  }
+
+  .search-input:focus {
+    outline: none;
+  }
+
+  .search-input::placeholder {
+    color: #999;
+  }
+
+  .search-submit,
+  .search-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: #666;
+    transition: color 0.2s;
+  }
+
+  .search-submit:hover,
+  .search-close:hover {
+    color: #1a1a1a;
+  }
+
+  .search-close {
+    border-left: 1px solid #eee;
+  }
+
+  /* Mobile styles */
+  @media (max-width: 768px) {
+    .search-bar.expanded .search-form {
+      position: fixed;
+      top: 71px;
+      left: 0;
+      right: 0;
+      transform: none;
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+    }
+
+    .search-input {
+      width: 100%;
+      flex: 1;
+    }
+  }
+</style>
+
+<script>
+  function initSearchBar() {
+    const searchBar = document.getElementById('search-bar');
+    const searchToggle = document.getElementById('search-toggle');
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const searchClose = document.getElementById('search-close');
+
+    if (!searchBar || !searchToggle || !searchForm || !searchInput || !searchClose) return;
+
+    // Open search
+    searchToggle.addEventListener('click', () => {
+      searchBar.classList.add('expanded');
+      searchToggle.setAttribute('aria-expanded', 'true');
+      setTimeout(() => searchInput.focus(), 100);
+    });
+
+    // Close search
+    searchClose.addEventListener('click', () => {
+      searchBar.classList.remove('expanded');
+      searchToggle.setAttribute('aria-expanded', 'false');
+      searchInput.value = '';
+    });
+
+    // Close on Escape key
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchBar.classList.remove('expanded');
+        searchToggle.setAttribute('aria-expanded', 'false');
+        searchInput.value = '';
+        searchToggle.focus();
+      }
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!searchBar.contains(e.target as Node) && searchBar.classList.contains('expanded')) {
+        searchBar.classList.remove('expanded');
+        searchToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', initSearchBar);
+  document.addEventListener('astro:page-load', initSearchBar);
+</script>
