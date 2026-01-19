@@ -1,7 +1,10 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPhotosByCategory, getCloudinaryUrl, getSiteConfig } from '../../utils/config';
+import PhotoLayout from '../../layouts/PhotoLayout.astro';
+import { getPhotosByCategory, getCategoryBySlug } from '../../utils/config';
 import type { Photo } from '../../types';
+
+const categoryId = 'landscapes';
+const category = getCategoryBySlug(categoryId);
 
 export async function getStaticPaths() {
   const photos = getPhotosByCategory('landscapes');
@@ -16,169 +19,15 @@ interface Props {
 }
 
 const { photo } = Astro.props;
-const siteConfig = getSiteConfig();
-const photos = getPhotosByCategory('landscapes');
+const photos = getPhotosByCategory(categoryId);
 const currentIndex = photos.findIndex((p) => p.slug === photo.slug);
 const prevPhoto = currentIndex > 0 ? photos[currentIndex - 1] : null;
 const nextPhoto = currentIndex < photos.length - 1 ? photos[currentIndex + 1] : null;
-
-const imageUrl = getCloudinaryUrl(photo.cloudinary_id, {
-  width: 1200,
-  quality: 'auto',
-  format: 'auto',
-});
 ---
 
-<BaseLayout
-  title={`${photo.title} | ${siteConfig.site_name}`}
-  description={photo.description}
->
-  <article class="photo-page">
-    <div class="container">
-      <nav class="breadcrumb">
-        <a href="/landscapes/">Landscapes</a>
-        <span>/</span>
-        <span>{photo.title}</span>
-      </nav>
-
-      <div class="photo-content">
-        <figure class="photo-figure">
-          <img
-            src={imageUrl}
-            alt={photo.title}
-            width={photo.width}
-            height={photo.height}
-          />
-        </figure>
-
-        <div class="photo-details">
-          <h1>{photo.title}</h1>
-
-          {photo.location && (
-            <p class="location"><strong>Location:</strong> {photo.location}</p>
-          )}
-
-          <p class="description">{photo.description}</p>
-
-          {photo.available_for_print && (
-            <a href={`/contact/?photo=${photo.slug}`} class="print-btn">
-              Request Print
-            </a>
-          )}
-        </div>
-      </div>
-
-      <nav class="photo-nav">
-        {prevPhoto ? (
-          <a href={`/landscapes/${prevPhoto.slug}/`} class="nav-link prev">
-            &larr; {prevPhoto.title}
-          </a>
-        ) : <span />}
-
-        {nextPhoto ? (
-          <a href={`/landscapes/${nextPhoto.slug}/`} class="nav-link next">
-            {nextPhoto.title} &rarr;
-          </a>
-        ) : <span />}
-      </nav>
-    </div>
-  </article>
-</BaseLayout>
-
-<style>
-  .photo-page {
-    padding: 2rem 0;
-  }
-
-  .breadcrumb {
-    margin-bottom: 1.5rem;
-    font-size: 0.9rem;
-    color: #666;
-  }
-
-  .breadcrumb a {
-    color: #666;
-  }
-
-  .breadcrumb a:hover {
-    color: #1a1a1a;
-  }
-
-  .breadcrumb span {
-    margin: 0 0.5rem;
-  }
-
-  .photo-content {
-    display: grid;
-    gap: 2rem;
-  }
-
-  @media (min-width: 768px) {
-    .photo-content {
-      grid-template-columns: 2fr 1fr;
-      align-items: start;
-    }
-  }
-
-  .photo-figure {
-    margin: 0;
-  }
-
-  .photo-figure img {
-    width: 100%;
-    height: auto;
-    border-radius: 4px;
-  }
-
-  .photo-details h1 {
-    font-size: 1.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .photo-details p {
-    margin-bottom: 0.75rem;
-    color: #444;
-  }
-
-  .location {
-    font-size: 0.95rem;
-  }
-
-  .description {
-    margin-top: 1rem;
-    line-height: 1.6;
-  }
-
-  .print-btn {
-    display: inline-block;
-    margin-top: 1.5rem;
-    padding: 0.75rem 1.5rem;
-    background: #1a1a1a;
-    color: white;
-    border-radius: 4px;
-    font-weight: 500;
-    transition: background 0.2s;
-  }
-
-  .print-btn:hover {
-    background: #333;
-  }
-
-  .photo-nav {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 3rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #eee;
-  }
-
-  .nav-link {
-    color: #666;
-    font-size: 0.9rem;
-    transition: color 0.2s;
-  }
-
-  .nav-link:hover {
-    color: #1a1a1a;
-  }
-</style>
+<PhotoLayout
+  photo={photo}
+  category={{ name: category?.name || 'Landscapes', slug: categoryId }}
+  prevPhoto={prevPhoto}
+  nextPhoto={nextPhoto}
+/>

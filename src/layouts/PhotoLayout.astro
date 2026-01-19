@@ -1,0 +1,317 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { getCloudinaryUrl, getSiteConfig, CLOUDINARY_BASE } from '../utils/config';
+import type { Photo } from '../types';
+
+interface Props {
+  photo: Photo;
+  category: {
+    name: string;
+    slug: string;
+  };
+  prevPhoto: Photo | null;
+  nextPhoto: Photo | null;
+}
+
+const { photo, category, prevPhoto, nextPhoto } = Astro.props;
+const siteConfig = getSiteConfig();
+
+// Generate image URLs
+const imageUrl = getCloudinaryUrl(photo.cloudinary_id, {
+  width: 1200,
+  quality: 'auto',
+  format: 'auto',
+});
+
+const ogImageUrl = getCloudinaryUrl(photo.cloudinary_id, {
+  width: 1200,
+  height: 630,
+  quality: 'auto',
+  format: 'auto',
+  crop: 'fill',
+});
+
+// Full URL for structured data
+const fullImageUrl = getCloudinaryUrl(photo.cloudinary_id, {
+  width: 1920,
+  quality: 'auto',
+  format: 'auto',
+});
+
+const pageUrl = `${Astro.site || ''}/${category.slug}/${photo.slug}/`;
+
+// Schema.org ImageObject structured data
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'ImageObject',
+  name: photo.title,
+  description: photo.description,
+  contentUrl: fullImageUrl,
+  thumbnailUrl: imageUrl,
+  author: {
+    '@type': 'Person',
+    name: siteConfig.site_name,
+  },
+  datePublished: photo.date_taken,
+  ...(photo.location && {
+    contentLocation: {
+      '@type': 'Place',
+      name: photo.location,
+    },
+  }),
+};
+---
+
+<BaseLayout
+  title={`${photo.title} | ${siteConfig.site_name}`}
+  description={photo.description}
+  image={ogImageUrl}
+>
+  <Fragment slot="head">
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content={pageUrl} />
+    <link rel="canonical" href={pageUrl} />
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+  </Fragment>
+
+  <article class="photo-page">
+    <div class="container">
+      <nav class="breadcrumb">
+        <a href={`/${category.slug}/`}>{category.name}</a>
+        <span>/</span>
+        <span>{photo.title}</span>
+      </nav>
+
+      <div class="photo-content">
+        <figure class="photo-figure">
+          <img
+            src={imageUrl}
+            alt={photo.title}
+            width={photo.width}
+            height={photo.height}
+          />
+        </figure>
+
+        <div class="photo-details">
+          <h1>{photo.title}</h1>
+
+          {photo.species && (
+            <p class="meta-item">
+              <span class="meta-label">Species:</span>
+              <span class="meta-value">{photo.species}</span>
+            </p>
+          )}
+
+          {photo.location && (
+            <p class="meta-item">
+              <span class="meta-label">Location:</span>
+              <span class="meta-value">{photo.location}</span>
+            </p>
+          )}
+
+          {photo.date_taken && (
+            <p class="meta-item">
+              <span class="meta-label">Date:</span>
+              <span class="meta-value">{new Date(photo.date_taken).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            </p>
+          )}
+
+          <p class="description">{photo.description}</p>
+
+          {photo.available_for_print && (
+            <a href={`/contact/?photo=${photo.slug}&title=${encodeURIComponent(photo.title)}`} class="print-btn">
+              Request Print
+            </a>
+          )}
+
+          <a href={`/${category.slug}/`} class="back-link">
+            &larr; Back to {category.name}
+          </a>
+        </div>
+      </div>
+
+      <nav class="photo-nav">
+        {prevPhoto ? (
+          <a href={`/${category.slug}/${prevPhoto.slug}/`} class="nav-link prev">
+            <span class="nav-arrow">&larr;</span>
+            <span class="nav-text">{prevPhoto.title}</span>
+          </a>
+        ) : <span class="nav-placeholder" />}
+
+        {nextPhoto ? (
+          <a href={`/${category.slug}/${nextPhoto.slug}/`} class="nav-link next">
+            <span class="nav-text">{nextPhoto.title}</span>
+            <span class="nav-arrow">&rarr;</span>
+          </a>
+        ) : <span class="nav-placeholder" />}
+      </nav>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .photo-page {
+    padding: 2rem 0;
+  }
+
+  .breadcrumb {
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .breadcrumb a {
+    color: #666;
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: #1a1a1a;
+    text-decoration: underline;
+  }
+
+  .breadcrumb span {
+    margin: 0 0.5rem;
+  }
+
+  .photo-content {
+    display: grid;
+    gap: 2rem;
+  }
+
+  @media (min-width: 768px) {
+    .photo-content {
+      grid-template-columns: 2fr 1fr;
+      align-items: start;
+    }
+  }
+
+  .photo-figure {
+    margin: 0;
+  }
+
+  .photo-figure img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .photo-details {
+    position: sticky;
+    top: 100px;
+  }
+
+  .photo-details h1 {
+    font-size: 1.75rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+    color: #1a1a1a;
+  }
+
+  .meta-item {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .meta-label {
+    color: #666;
+    margin-right: 0.5rem;
+  }
+
+  .meta-value {
+    color: #1a1a1a;
+  }
+
+  .description {
+    margin-top: 1.25rem;
+    line-height: 1.7;
+    color: #444;
+  }
+
+  .print-btn {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #1a1a1a;
+    color: white;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .print-btn:hover {
+    background: #333;
+  }
+
+  .back-link {
+    display: block;
+    margin-top: 1.5rem;
+    color: #666;
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  .back-link:hover {
+    color: #1a1a1a;
+  }
+
+  .photo-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #eee;
+    gap: 1rem;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: color 0.2s;
+    max-width: 45%;
+  }
+
+  .nav-link:hover {
+    color: #1a1a1a;
+  }
+
+  .nav-link.prev {
+    text-align: left;
+  }
+
+  .nav-link.next {
+    text-align: right;
+    margin-left: auto;
+  }
+
+  .nav-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nav-arrow {
+    flex-shrink: 0;
+  }
+
+  .nav-placeholder {
+    flex: 1;
+  }
+
+  @media (max-width: 640px) {
+    .nav-text {
+      display: none;
+    }
+
+    .nav-link {
+      padding: 0.5rem;
+    }
+  }
+</style>
