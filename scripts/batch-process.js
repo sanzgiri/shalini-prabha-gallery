@@ -33,6 +33,14 @@ const PHOTOS_DIR = join(__dirname, '..', 'public', 'photos');
 const PHOTOS_YAML_PATH = join(__dirname, '..', 'config', 'photos.yaml');
 const PROGRESS_PATH = join(__dirname, 'batch-progress.json');
 
+// Instagram export paths (will check multiple possible locations)
+const INSTAGRAM_EXPORT_DIR = join(__dirname, '..', 'photos', 'instagram-export');
+const INSTAGRAM_JSON_PATHS = [
+  join(INSTAGRAM_EXPORT_DIR, 'content', 'posts_1.json'),
+  join(INSTAGRAM_EXPORT_DIR, 'your_instagram_activity', 'content', 'posts_1.json'),
+  join(__dirname, '..', 'photos', 'content', 'posts_1.json'),
+];
+
 const DEFAULT_BATCH_SIZE = 50;
 
 // OpenAI pricing per 1M tokens (gpt-4o-mini)
@@ -41,6 +49,51 @@ const PRICING = {
   'gpt-4o': { input: 2.50, output: 10.00 }
 };
 const MODEL = 'gpt-4o-mini';
+
+// Global caption map (loaded once)
+let captionMap = null;
+
+/**
+ * Load Instagram captions from posts_1.json and create a mapping
+ * from filename to caption data
+ */
+function loadInstagramCaptions() {
+  if (captionMap !== null) return captionMap;
+
+  captionMap = new Map();
+
+  for (const jsonPath of INSTAGRAM_JSON_PATHS) {
+    if (existsSync(jsonPath)) {
+      try {
+        const data = JSON.parse(readFileSync(jsonPath, 'utf-8'));
+        const posts = Array.isArray(data) ? data : (data.posts || []);
+
+        for (const post of posts) {
+          const media = post.media || [];
+          for (const item of media) {
+            if (item.uri) {
+              // Extract just the filename from the uri path
+              const filename = basename(item.uri);
+              captionMap.set(filename, {
+                caption: item.title || '',
+                timestamp: item.creation_timestamp,
+                location: post.location || null
+              });
+            }
+          }
+        }
+
+        console.log(`Loaded ${captionMap.size} captions from Instagram export\n`);
+        return captionMap;
+      } catch (e) {
+        console.log(`Warning: Could not parse ${jsonPath}: ${e.message}`);
+      }
+    }
+  }
+
+  console.log('No Instagram captions found (will use AI-only for descriptions)\n');
+  return captionMap;
+}
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -248,6 +301,9 @@ function getAllPhotos(specificFolder = null) {
   const photos = [];
   const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
 
+  // Load Instagram captions
+  const captions = loadInstagramCaptions();
+
   if (!existsSync(POSTS_DIR)) {
     console.error(`Error: Photos directory not found: ${POSTS_DIR}`);
     process.exit(1);
@@ -268,12 +324,17 @@ function getAllPhotos(specificFolder = null) {
     for (const file of files) {
       const ext = extname(file).toLowerCase();
       if (imageExtensions.includes(ext)) {
+        // Get Instagram caption if available
+        const instagramData = captions.get(file) || {};
+
         photos.push({
           filename: file,
           folder: folder,
           relativePath: `${folder}/${file}`,
           fullPath: join(folderPath, file),
-          date: parseDate(folder)
+          date: parseDate(folder),
+          instagramCaption: instagramData.caption || '',
+          instagramLocation: instagramData.location || null
         });
       }
     }
@@ -290,11 +351,11 @@ function parseDate(folder) {
 }
 
 async function processPhoto(photo) {
-  // Classify the image
-  const classification = await classifyImage(photo.fullPath);
+  // Classify the image (use Instagram location as hint if available)
+  const classification = await classifyImage(photo.fullPath, photo.instagramLocation);
 
-  // Generate caption
-  const caption = await generateCaption(photo.fullPath, classification);
+  // Generate caption (use Instagram caption for context)
+  const caption = await generateCaption(photo.fullPath, classification, photo.instagramCaption);
 
   // Generate slug and ID
   const slug = generateSlug(caption.title);
@@ -345,10 +406,12 @@ async function processPhoto(photo) {
   };
 }
 
-async function classifyImage(imagePath) {
+async function classifyImage(imagePath, instagramLocation = null) {
   const imageData = readFileSync(imagePath);
   const base64Image = imageData.toString('base64');
   const mimeType = imagePath.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+  const locationHint = instagramLocation ? `\n\nKnown location from metadata: ${instagramLocation}` : '';
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -375,7 +438,7 @@ async function classifyImage(imagePath) {
 
 3. SPECIES (for birds/wildlife): Specific species name, or null if uncertain
 
-4. LOCATION: Inferred location, or null if unknown
+4. LOCATION: Inferred location, or null if unknown${locationHint}
 
 Respond ONLY with JSON:
 {"category":"string","filter":"string|null","species":"string|null","location":"string|null"}`
@@ -413,7 +476,7 @@ Respond ONLY with JSON:
   };
 }
 
-async function generateCaption(imagePath, classification) {
+async function generateCaption(imagePath, classification, instagramCaption = '') {
   const imageData = readFileSync(imagePath);
   const base64Image = imageData.toString('base64');
   const mimeType = imagePath.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
@@ -423,6 +486,36 @@ async function generateCaption(imagePath, classification) {
     classification.species ? `Species: ${classification.species}` : null,
     classification.location ? `Location: ${classification.location}` : null
   ].filter(Boolean).join('\n');
+
+  // If we have a good Instagram caption, use it with minimal AI help
+  const hasInstagramCaption = instagramCaption && instagramCaption.trim().length > 10;
+
+  const prompt = hasInstagramCaption
+    ? `Create a title and clean description for this photograph.
+
+Context:
+${context}
+
+Original Instagram caption:
+"${instagramCaption}"
+
+Requirements:
+- Title: Extract or create a short title (3-8 words) from the caption. Include species name if applicable.
+- Description: Clean up the Instagram caption into 1-2 professional sentences. Remove hashtags but keep the meaning. Keep details the photographer mentioned.
+
+Respond ONLY with JSON:
+{"title":"string","description":"string"}`
+    : `Generate a title and description for this photograph.
+
+Context:
+${context}
+
+Requirements:
+- Title: Short, evocative (3-8 words). Include species name if applicable.
+- Description: 1-2 sentences describing the scene.
+
+Respond ONLY with JSON:
+{"title":"string","description":"string"}`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -435,20 +528,7 @@ async function generateCaption(imagePath, classification) {
       messages: [{
         role: 'user',
         content: [
-          {
-            type: 'text',
-            text: `Generate a title and description for this photograph.
-
-Context:
-${context}
-
-Requirements:
-- Title: Short, evocative (3-8 words). Include species name if applicable.
-- Description: 1-2 sentences describing the scene.
-
-Respond ONLY with JSON:
-{"title":"string","description":"string"}`
-          },
+          { type: 'text', text: prompt },
           {
             type: 'image_url',
             image_url: { url: `data:${mimeType};base64,${base64Image}` }
@@ -473,6 +553,7 @@ Respond ONLY with JSON:
   return {
     title: parsed.title?.trim() || 'Untitled',
     description: parsed.description?.trim() || '',
+    hadInstagramCaption: hasInstagramCaption,
     usage: data.usage || { prompt_tokens: 0, completion_tokens: 0 }
   };
 }
