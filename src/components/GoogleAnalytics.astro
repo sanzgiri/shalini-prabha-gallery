@@ -1,0 +1,21 @@
+---
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+
+// Only render if a valid ID is provided
+if (!id) return null;
+---
+
+<!-- Google Analytics (GA4) -->
+<script async src={`https://www.googletagmanager.com/gtag/js?id=${id}`}></script>
+<script define:vars={{ id }}>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag('js', new Date());
+  gtag('config', id);
+</script>
