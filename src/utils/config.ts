@@ -66,15 +66,28 @@ export function getPhotos(): Photo[] {
 }
 
 /**
- * Get photos filtered by category
+ * Shuffle array using Fisher-Yates algorithm
  */
-export function getPhotosByCategory(categoryId: string): Photo[] {
-  const photos = getPhotos();
-  return photos.filter((photo) => photo.category === categoryId);
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 }
 
 /**
- * Get photos filtered by category and optional filter
+ * Get photos filtered by category (randomized order)
+ */
+export function getPhotosByCategory(categoryId: string): Photo[] {
+  const photos = getPhotos();
+  const filtered = photos.filter((photo) => photo.category === categoryId);
+  return shuffleArray(filtered);
+}
+
+/**
+ * Get photos filtered by category and optional filter (randomized order)
  */
 export function getPhotosByCategoryAndFilter(
   categoryId: string,
@@ -84,7 +97,8 @@ export function getPhotosByCategoryAndFilter(
   if (!filterId) {
     return photos;
   }
-  return photos.filter((photo) => photo.filters.includes(filterId));
+  const filtered = photos.filter((photo) => photo.filters.includes(filterId));
+  return shuffleArray(filtered);
 }
 
 /**
