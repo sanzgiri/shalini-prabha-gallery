@@ -108,12 +108,10 @@ const hasMore = photos.length > initialCount;
           width="${photo.width || ''}"
           height="${photo.height || ''}"
         />
+        <div class="overlay">
+          <span class="photo-title">${photo.title}</span>
+        </div>
       </a>
-      <div class="photo-info">
-        <a href="/${category}/${photo.slug}/" class="photo-title-link">
-          ${photo.title}
-        </a>
-      </div>
     `;
 
     return card;
@@ -172,5 +170,62 @@ const hasMore = photos.length > initialCount;
 
   .load-more-btn:active {
     transform: translateY(1px);
+  }
+
+  /* Styles for dynamically loaded photo cards */
+  :global(.photo-card) {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+
+  :global(.photo-link) {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+
+  :global(.photo-link img) {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  :global(.overlay) {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.8) 0%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    padding: 2rem 1rem 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  :global(.photo-link:hover .overlay),
+  :global(.photo-link:focus .overlay) {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    :global(.overlay) {
+      opacity: 1;
+    }
+  }
+
+  :global(.photo-link:hover img) {
+    transform: scale(1.03);
+  }
+
+  :global(.photo-title) {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   }
 </style>
