@@ -1,6 +1,6 @@
 ---
 import GalleryLayout from '../../layouts/GalleryLayout.astro';
-import MasonryGrid from '../../components/MasonryGrid.astro';
+import PaginatedGallery from '../../components/PaginatedGallery.astro';
 import FilterBar from '../../components/FilterBar.astro';
 import { getCategoryBySlug, getPhotosByCategory } from '../../utils/config';
 
@@ -16,5 +16,5 @@ const filters = category?.filters || [];
   categoryDescription={category?.description}
 >
   <FilterBar slot="filters" filters={filters} />
-  <MasonryGrid photos={photos} category="landscapes" />
+  <PaginatedGallery photos={photos} category="landscapes" />
 </GalleryLayout>

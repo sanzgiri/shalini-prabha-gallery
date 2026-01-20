@@ -44,16 +44,18 @@ const href = showLightbox ? '#' : `/${category}/${photo.slug}/`;
       width={photo.width}
       height={photo.height}
     />
-    <div class="overlay">
-      <span class="photo-title">{photo.title}</span>
-    </div>
   </a>
+  <div class="photo-info">
+    <a href={`/${category}/${photo.slug}/`} class="photo-title-link">
+      {photo.title}
+    </a>
+  </div>
 </div>
 
 <style>
   .photo-card {
     break-inside: avoid;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
   }
 
   .photo-link {
@@ -70,32 +72,24 @@ const href = showLightbox ? '#' : `/${category}/${photo.slug}/`;
     transition: transform 0.3s ease;
   }
 
-  .overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.7) 0%,
-      rgba(0, 0, 0, 0) 50%
-    );
-    display: flex;
-    align-items: flex-end;
-    padding: 1rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .photo-link:hover .overlay {
-    opacity: 1;
-  }
-
   .photo-link:hover img {
     transform: scale(1.03);
   }
 
-  .photo-title {
-    color: white;
-    font-size: 0.95rem;
+  .photo-info {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .photo-title-link {
+    color: var(--color-text, #333);
+    font-size: 0.875rem;
     font-weight: 500;
+    text-decoration: none;
+    line-height: 1.3;
+    display: block;
+  }
+
+  .photo-title-link:hover {
+    color: var(--color-primary, #2563eb);
   }
 </style>

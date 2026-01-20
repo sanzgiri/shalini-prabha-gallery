@@ -1,6 +1,6 @@
 ---
 import GalleryLayout from '../../layouts/GalleryLayout.astro';
-import MasonryGrid from '../../components/MasonryGrid.astro';
+import PaginatedGallery from '../../components/PaginatedGallery.astro';
 import { getCategoryBySlug, getPhotosByCategory } from '../../utils/config';
 
 const category = getCategoryBySlug('wildlife');
@@ -13,5 +13,5 @@ const photos = getPhotosByCategory('wildlife');
   categoryName={category?.name || 'Wildlife'}
   categoryDescription={category?.description}
 >
-  <MasonryGrid photos={photos} category="wildlife" />
+  <PaginatedGallery photos={photos} category="wildlife" />
 </GalleryLayout>

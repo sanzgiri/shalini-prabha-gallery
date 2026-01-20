@@ -1,0 +1,176 @@
+---
+import PhotoCard from './PhotoCard.astro';
+import type { Photo } from '../types';
+
+interface Props {
+  photos: Photo[];
+  category: string;
+  initialCount?: number;
+  loadMoreCount?: number;
+}
+
+const {
+  photos,
+  category,
+  initialCount = 48,
+  loadMoreCount = 48
+} = Astro.props;
+
+const initialPhotos = photos.slice(0, initialCount);
+const hasMore = photos.length > initialCount;
+---
+
+<div class="paginated-gallery" data-category={category}>
+  <div class="masonry-grid" id="photo-grid">
+    {initialPhotos.map((photo) => (
+      <PhotoCard photo={photo} category={category} />
+    ))}
+  </div>
+
+  {hasMore && (
+    <div class="load-more-container">
+      <button
+        class="load-more-btn"
+        id="load-more-btn"
+        data-loaded={initialCount}
+        data-total={photos.length}
+        data-increment={loadMoreCount}
+      >
+        Load More ({photos.length - initialCount} remaining)
+      </button>
+    </div>
+  )}
+
+  <!-- Embed all photo data for client-side pagination -->
+  <script define:vars={{ photos, category, initialCount, loadMoreCount }}>
+    window.__galleryData = {
+      photos: photos,
+      category: category,
+      initialCount: initialCount,
+      loadMoreCount: loadMoreCount
+    };
+  </script>
+</div>
+
+<script>
+  function initGallery() {
+    const btn = document.getElementById('load-more-btn');
+    const grid = document.getElementById('photo-grid');
+
+    if (!btn || !grid || !window.__galleryData) return;
+
+    const { photos, category, loadMoreCount } = window.__galleryData;
+    let loaded = parseInt(btn.dataset.loaded || '0');
+    const total = photos.length;
+
+    btn.addEventListener('click', () => {
+      const nextBatch = photos.slice(loaded, loaded + loadMoreCount);
+
+      nextBatch.forEach(photo => {
+        const card = createPhotoCard(photo, category);
+        grid.appendChild(card);
+      });
+
+      loaded += nextBatch.length;
+      btn.dataset.loaded = loaded.toString();
+
+      const remaining = total - loaded;
+      if (remaining <= 0) {
+        btn.parentElement?.remove();
+      } else {
+        btn.textContent = `Load More (${remaining} remaining)`;
+      }
+    });
+  }
+
+  function createPhotoCard(photo, category) {
+    const cloudinaryBase = 'https://res.cloudinary.com/dsilndqt6/image/upload';
+    const thumbnailUrl = `${cloudinaryBase}/w_600,q_auto,f_auto/${photo.cloudinary_id}`;
+    const fullUrl = `${cloudinaryBase}/w_1600,q_auto,f_auto/${photo.cloudinary_id}`;
+
+    const card = document.createElement('div');
+    card.className = 'photo-card';
+    card.dataset.lightbox = 'true';
+    card.dataset.fullUrl = fullUrl;
+    card.dataset.title = photo.title;
+    card.dataset.description = photo.description || '';
+    card.dataset.species = photo.species || '';
+    card.dataset.location = photo.location || '';
+    card.dataset.href = `/${category}/${photo.slug}/`;
+    card.dataset.filter = photo.filters?.length ? photo.filters.join(',') : 'none';
+
+    card.innerHTML = `
+      <a href="#" class="photo-link">
+        <img
+          src="${thumbnailUrl}"
+          alt="${photo.title}"
+          loading="lazy"
+          width="${photo.width || ''}"
+          height="${photo.height || ''}"
+        />
+      </a>
+      <div class="photo-info">
+        <a href="/${category}/${photo.slug}/" class="photo-title-link">
+          ${photo.title}
+        </a>
+      </div>
+    `;
+
+    return card;
+  }
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', initGallery);
+  // Also handle Astro view transitions
+  document.addEventListener('astro:page-load', initGallery);
+</script>
+
+<style>
+  .masonry-grid {
+    column-count: 1;
+    column-gap: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .masonry-grid {
+      column-count: 2;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .masonry-grid {
+      column-count: 3;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .masonry-grid {
+      column-count: 4;
+    }
+  }
+
+  .load-more-container {
+    text-align: center;
+    padding: 2rem 0;
+  }
+
+  .load-more-btn {
+    background: var(--color-primary, #2563eb);
+    color: white;
+    border: none;
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .load-more-btn:hover {
+    background: var(--color-primary-dark, #1d4ed8);
+  }
+
+  .load-more-btn:active {
+    transform: translateY(1px);
+  }
+</style>
