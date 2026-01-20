@@ -11359,20 +11359,6 @@ photos:
     width: 1440
     height: 1440
     cloudinary_id: "photo-gallery/birds/majestic-red-tailed-hawk-4"
-  - id: "wildlife-114"
-    filename: "seeking-safari-advice-for-wildebeest.jpg"
-    slug: "seeking-safari-advice-for-wildebeest"
-    category: "wildlife"
-    filters: []
-    title: "Seeking Safari Advice for Wildebeest"
-    description: "A user is looking for recommendations for a guide to help with an African safari, specifically during the wildebeest migration."
-    date_taken: "2025-12-01"
-    available_for_print: true
-    species: "Wildebeest"
-    location: "Africa"
-    width: 1179
-    height: 704
-    cloudinary_id: "photo-gallery/wildlife/seeking-safari-advice-for-wildebeest"
   - id: "bird-411"
     filename: "american-kestrel-perched.jpg"
     slug: "american-kestrel-perched"
