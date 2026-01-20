@@ -37,18 +37,24 @@ const PROGRESS_PATH = join(__dirname, 'batch-progress.json');
 const INSTAGRAM_EXPORT_DIR = join(__dirname, '..', 'photos', 'instagram-export');
 const INSTAGRAM_JSON_PATHS = [
   join(INSTAGRAM_EXPORT_DIR, 'content', 'posts_1.json'),
+  join(INSTAGRAM_EXPORT_DIR, 'content', 'archived_posts.json'),
   join(INSTAGRAM_EXPORT_DIR, 'your_instagram_activity', 'content', 'posts_1.json'),
   join(__dirname, '..', 'photos', 'content', 'posts_1.json'),
 ];
 
 const DEFAULT_BATCH_SIZE = 50;
 
-// OpenAI pricing per 1M tokens (gpt-4o-mini)
+// Model configuration - set USE_OLLAMA=true for local inference
+const USE_OLLAMA = process.env.USE_OLLAMA === 'true'; // Default to OpenAI
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2-vision:11b';
+const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
+
+// OpenAI pricing per 1M tokens (only used if USE_OLLAMA=false)
 const PRICING = {
   'gpt-4o-mini': { input: 0.15, output: 0.60 },
   'gpt-4o': { input: 2.50, output: 10.00 }
 };
-const MODEL = 'gpt-4o-mini';
+const OPENAI_MODEL = 'gpt-4o-mini';
 
 // Global caption map (loaded once)
 let captionMap = null;
@@ -61,13 +67,26 @@ function loadInstagramCaptions() {
   if (captionMap !== null) return captionMap;
 
   captionMap = new Map();
+  let filesLoaded = 0;
 
   for (const jsonPath of INSTAGRAM_JSON_PATHS) {
     if (existsSync(jsonPath)) {
       try {
         const data = JSON.parse(readFileSync(jsonPath, 'utf-8'));
-        const posts = Array.isArray(data) ? data : (data.posts || []);
 
+        // Handle different JSON structures:
+        // - posts_1.json: array of posts directly
+        // - archived_posts.json: { ig_archived_post_media: [...] }
+        let posts = [];
+        if (Array.isArray(data)) {
+          posts = data;
+        } else if (data.ig_archived_post_media) {
+          posts = data.ig_archived_post_media;
+        } else if (data.posts) {
+          posts = data.posts;
+        }
+
+        let countFromFile = 0;
         for (const post of posts) {
           const media = post.media || [];
           for (const item of media) {
@@ -79,19 +98,27 @@ function loadInstagramCaptions() {
                 timestamp: item.creation_timestamp,
                 location: post.location || null
               });
+              countFromFile++;
             }
           }
         }
 
-        console.log(`Loaded ${captionMap.size} captions from Instagram export\n`);
-        return captionMap;
+        if (countFromFile > 0) {
+          console.log(`Loaded ${countFromFile} captions from ${basename(jsonPath)}`);
+          filesLoaded++;
+        }
       } catch (e) {
         console.log(`Warning: Could not parse ${jsonPath}: ${e.message}`);
       }
     }
   }
 
-  console.log('No Instagram captions found (will use AI-only for descriptions)\n');
+  if (filesLoaded > 0) {
+    console.log(`Total: ${captionMap.size} captions loaded\n`);
+  } else {
+    console.log('No Instagram captions found (will use AI-only for descriptions)\n');
+  }
+
   return captionMap;
 }
 
@@ -155,11 +182,17 @@ async function main() {
     return;
   }
 
-  // Check for OpenAI API key
-  if (!process.env.OPENAI_API_KEY) {
-    console.error('Error: OPENAI_API_KEY environment variable required');
-    console.error('Set it with: export OPENAI_API_KEY="sk-..."');
-    process.exit(1);
+  // Check for required configuration
+  if (USE_OLLAMA) {
+    console.log(`Using Ollama (${OLLAMA_MODEL}) at ${OLLAMA_URL}\n`);
+  } else {
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('Error: OPENAI_API_KEY environment variable required');
+      console.error('Set it with: export OPENAI_API_KEY="sk-..."');
+      console.error('Or use Ollama (default): ensure ollama is running');
+      process.exit(1);
+    }
+    console.log(`Using OpenAI (${OPENAI_MODEL})\n`);
   }
 
   // Process batch
@@ -177,12 +210,10 @@ async function main() {
       progress.processed.push(photo.relativePath);
       progress.successful++;
 
-      // Track tokens and cost
-      const classifyUsage = result.classification.usage || { prompt_tokens: 0, completion_tokens: 0 };
-      const captionUsage = result.caption.usage || { prompt_tokens: 0, completion_tokens: 0 };
-
-      const inputTokens = classifyUsage.prompt_tokens + captionUsage.prompt_tokens;
-      const outputTokens = classifyUsage.completion_tokens + captionUsage.completion_tokens;
+      // Track tokens and cost (single call now)
+      const usage = result.caption.usage || { prompt_tokens: 0, completion_tokens: 0 };
+      const inputTokens = usage.prompt_tokens;
+      const outputTokens = usage.completion_tokens;
 
       progress.tokens = progress.tokens || { input: 0, output: 0 };
       progress.tokens.input += inputTokens;
@@ -191,7 +222,7 @@ async function main() {
       batchTokens.input += inputTokens;
       batchTokens.output += outputTokens;
 
-      const photoCost = (inputTokens * PRICING[MODEL].input + outputTokens * PRICING[MODEL].output) / 1000000;
+      const photoCost = USE_OLLAMA ? 0 : (inputTokens * PRICING[OPENAI_MODEL].input + outputTokens * PRICING[OPENAI_MODEL].output) / 1000000;
       progress.cost = (progress.cost || 0) + photoCost;
       batchCost += photoCost;
 
@@ -351,17 +382,14 @@ function parseDate(folder) {
 }
 
 async function processPhoto(photo) {
-  // Classify the image (use Instagram location as hint if available)
-  const classification = await classifyImage(photo.fullPath, photo.instagramLocation);
-
-  // Generate caption (use Instagram caption for context)
-  const caption = await generateCaption(photo.fullPath, classification, photo.instagramCaption);
+  // Single LLM call for classification + caption
+  const result = await analyzePhoto(photo.fullPath, photo.instagramCaption, photo.instagramLocation);
 
   // Generate slug and ID
-  const slug = generateSlug(caption.title);
+  const slug = generateSlug(result.title);
 
   // Copy to appropriate category folder
-  const categoryDir = join(PHOTOS_DIR, classification.category);
+  const categoryDir = join(PHOTOS_DIR, result.category);
   if (!existsSync(categoryDir)) {
     mkdirSync(categoryDir, { recursive: true });
   }
@@ -388,7 +416,7 @@ async function processPhoto(photo) {
   // Upload to Cloudinary if configured
   let cloudinaryId = null;
   if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
-    cloudinaryId = await uploadToCloudinary(finalDestPath, classification.category, finalSlug);
+    cloudinaryId = await uploadToCloudinary(finalDestPath, result.category, finalSlug);
   }
 
   // Get image dimensions
@@ -396,8 +424,17 @@ async function processPhoto(photo) {
 
   return {
     photo,
-    classification,
-    caption,
+    classification: {
+      category: result.category,
+      filter: result.filter,
+      species: result.species,
+      location: result.location
+    },
+    caption: {
+      title: result.title,
+      description: result.description,
+      usage: result.usage
+    },
     slug: finalSlug,
     filename: finalFilename,
     destPath: finalDestPath,
@@ -406,6 +443,115 @@ async function processPhoto(photo) {
   };
 }
 
+async function analyzePhoto(imagePath, instagramCaption = '', instagramLocation = null) {
+  const imageData = readFileSync(imagePath);
+  const base64Image = imageData.toString('base64');
+  const mimeType = imagePath.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+  const locationHint = instagramLocation ? `\nKnown location: ${instagramLocation}` : '';
+  const captionHint = instagramCaption && instagramCaption.trim().length > 10
+    ? `\nOriginal Instagram caption:\n"${instagramCaption}"`
+    : '';
+
+  const prompt = `Analyze this photograph and provide classification and caption.
+
+${captionHint}${locationHint}
+
+Return a JSON object with these fields:
+
+1. category: Choose exactly one: "birds", "wildlife", "landscapes", "flora-macro"
+   - birds: Any bird species
+   - wildlife: Mammals, reptiles, amphibians, insects (not birds)
+   - landscapes: Scenic views, mountains, waterfalls, cityscapes, seascapes
+   - flora-macro: Flowers, plants, trees, macro/close-up photography
+
+2. filter: For landscapes only, one of: "mountains", "waterfalls", "cityscapes", or null
+
+3. species: For birds/wildlife, the specific species name (e.g., "Great Blue Heron"), or null
+
+4. location: Inferred or known location, or null
+
+5. title: A short, evocative title (3-8 words). Include species name if applicable.
+
+6. description: 1-2 sentences. If Instagram caption provided, clean it up (remove hashtags, keep meaning). Otherwise describe the scene.
+
+Respond ONLY with valid JSON:
+{"category":"string","filter":"string|null","species":"string|null","location":"string|null","title":"string","description":"string"}`;
+
+  let content, usage;
+
+  if (USE_OLLAMA) {
+    const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        messages: [{
+          role: 'user',
+          content: prompt,
+          images: [base64Image]
+        }],
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Ollama error: ${response.status} - ${text}`);
+    }
+
+    const data = await response.json();
+    content = data.message?.content;
+    usage = { prompt_tokens: 0, completion_tokens: 0 };
+  } else {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY.trim()}`
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Image}` } }
+          ]
+        }],
+        max_tokens: 300
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    content = data.choices[0]?.message?.content;
+    usage = data.usage || { prompt_tokens: 0, completion_tokens: 0 };
+  }
+
+  const jsonMatch = content.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('No JSON in response');
+
+  const parsed = JSON.parse(jsonMatch[0]);
+  const validCategories = ['birds', 'wildlife', 'landscapes', 'flora-macro'];
+  const validFilters = ['mountains', 'waterfalls', 'cityscapes'];
+
+  return {
+    category: validCategories.includes(parsed.category) ? parsed.category : 'flora-macro',
+    filter: parsed.category === 'landscapes' && validFilters.includes(parsed.filter) ? parsed.filter : null,
+    species: parsed.species || null,
+    location: parsed.location || null,
+    title: parsed.title?.trim() || 'Untitled',
+    description: parsed.description?.trim() || '',
+    usage
+  };
+}
+
+// Legacy function - kept for reference but no longer used
 async function classifyImage(imagePath, instagramLocation = null) {
   const imageData = readFileSync(imagePath);
   const base64Image = imageData.toString('base64');
@@ -413,20 +559,7 @@ async function classifyImage(imagePath, instagramLocation = null) {
 
   const locationHint = instagramLocation ? `\n\nKnown location from metadata: ${instagramLocation}` : '';
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: `Analyze this photograph and classify it.
+  const prompt = `Analyze this photograph and classify it.
 
 1. CATEGORY: Choose exactly one: birds, wildlife, landscapes, flora-macro
    - birds: Any bird species
@@ -441,25 +574,63 @@ async function classifyImage(imagePath, instagramLocation = null) {
 4. LOCATION: Inferred location, or null if unknown${locationHint}
 
 Respond ONLY with JSON:
-{"category":"string","filter":"string|null","species":"string|null","location":"string|null"}`
-          },
-          {
-            type: 'image_url',
-            image_url: { url: `data:${mimeType};base64,${base64Image}` }
-          }
-        ]
-      }],
-      max_tokens: 200
-    })
-  });
+{"category":"string","filter":"string|null","species":"string|null","location":"string|null"}`;
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || `API error: ${response.status}`);
+  let content, usage;
+
+  if (USE_OLLAMA) {
+    const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        messages: [{
+          role: 'user',
+          content: prompt,
+          images: [base64Image]
+        }],
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Ollama error: ${response.status} - ${text}`);
+    }
+
+    const data = await response.json();
+    content = data.message?.content;
+    usage = { prompt_tokens: 0, completion_tokens: 0 };
+  } else {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY.trim()}`
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Image}` } }
+          ]
+        }],
+        max_tokens: 200
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    content = data.choices[0]?.message?.content;
+    usage = data.usage || { prompt_tokens: 0, completion_tokens: 0 };
   }
 
-  const data = await response.json();
-  const content = data.choices[0]?.message?.content;
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('No JSON in response');
 
@@ -472,7 +643,7 @@ Respond ONLY with JSON:
     filter: parsed.category === 'landscapes' && validFilters.includes(parsed.filter) ? parsed.filter : null,
     species: parsed.species || null,
     location: parsed.location || null,
-    usage: data.usage || { prompt_tokens: 0, completion_tokens: 0 }
+    usage
   };
 }
 
@@ -517,35 +688,61 @@ Requirements:
 Respond ONLY with JSON:
 {"title":"string","description":"string"}`;
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: prompt },
-          {
-            type: 'image_url',
-            image_url: { url: `data:${mimeType};base64,${base64Image}` }
-          }
-        ]
-      }],
-      max_tokens: 200
-    })
-  });
+  let content, usage;
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || `API error: ${response.status}`);
+  if (USE_OLLAMA) {
+    const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        messages: [{
+          role: 'user',
+          content: prompt,
+          images: [base64Image]
+        }],
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Ollama error: ${response.status} - ${text}`);
+    }
+
+    const data = await response.json();
+    content = data.message?.content;
+    usage = { prompt_tokens: 0, completion_tokens: 0 };
+  } else {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY.trim()}`
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Image}` } }
+          ]
+        }],
+        max_tokens: 200
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    content = data.choices[0]?.message?.content;
+    usage = data.usage || { prompt_tokens: 0, completion_tokens: 0 };
   }
 
-  const data = await response.json();
-  const content = data.choices[0]?.message?.content;
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('No JSON in response');
 
@@ -554,7 +751,7 @@ Respond ONLY with JSON:
     title: parsed.title?.trim() || 'Untitled',
     description: parsed.description?.trim() || '',
     hadInstagramCaption: hasInstagramCaption,
-    usage: data.usage || { prompt_tokens: 0, completion_tokens: 0 }
+    usage
   };
 }
 

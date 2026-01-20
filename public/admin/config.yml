@@ -1,0 +1,191 @@
+backend:
+  name: git-gateway
+  branch: main
+
+# Media files will be stored in public/photos
+media_folder: "public/photos"
+public_folder: "/photos"
+
+# Site URL for previews
+site_url: https://shalini-prabha.netlify.app
+display_url: https://shalini-prabha.netlify.app
+
+collections:
+  # Photos collection - edits config/photos.yaml
+  - name: "photos"
+    label: "Photos"
+    label_singular: "Photo"
+    description: "Manage gallery photos"
+    folder: "config"
+    format: "yaml"
+    create: false
+    delete: false
+    files:
+      - name: "photos"
+        label: "All Photos"
+        file: "config/photos.yaml"
+        fields:
+          - name: "photos"
+            label: "Photos"
+            label_singular: "Photo"
+            widget: "list"
+            summary: "{{fields.title}} ({{fields.category}})"
+            fields:
+              - name: "id"
+                label: "ID"
+                widget: "string"
+                hint: "Unique ID (e.g., bird-001)"
+
+              - name: "filename"
+                label: "Filename"
+                widget: "string"
+                hint: "Image filename (e.g., great-blue-heron.jpg)"
+
+              - name: "slug"
+                label: "Slug"
+                widget: "string"
+                hint: "URL slug (e.g., great-blue-heron)"
+
+              - name: "category"
+                label: "Category"
+                widget: "select"
+                options:
+                  - { label: "Birds", value: "birds" }
+                  - { label: "Wildlife", value: "wildlife" }
+                  - { label: "Landscapes", value: "landscapes" }
+                  - { label: "Flora & Macro", value: "flora-macro" }
+
+              - name: "filters"
+                label: "Filters"
+                widget: "select"
+                multiple: true
+                required: false
+                options:
+                  - { label: "Mountains", value: "mountains" }
+                  - { label: "Waterfalls", value: "waterfalls" }
+                  - { label: "Cityscapes", value: "cityscapes" }
+                hint: "Only for Landscapes category"
+
+              - name: "title"
+                label: "Title"
+                widget: "string"
+
+              - name: "description"
+                label: "Description"
+                widget: "text"
+
+              - name: "species"
+                label: "Species"
+                widget: "string"
+                required: false
+                hint: "For birds/wildlife photos"
+
+              - name: "location"
+                label: "Location"
+                widget: "string"
+                required: false
+
+              - name: "date_taken"
+                label: "Date Taken"
+                widget: "datetime"
+                format: "YYYY-MM-DD"
+                date_format: "YYYY-MM-DD"
+                time_format: false
+                required: false
+
+              - name: "available_for_print"
+                label: "Available for Print"
+                widget: "boolean"
+                default: true
+
+              - name: "cloudinary_id"
+                label: "Cloudinary ID"
+                widget: "string"
+                hint: "Cloudinary public ID for the image"
+
+              - name: "width"
+                label: "Width"
+                widget: "number"
+                value_type: "int"
+                required: false
+
+              - name: "height"
+                label: "Height"
+                widget: "number"
+                value_type: "int"
+                required: false
+
+  # Site settings
+  - name: "settings"
+    label: "Settings"
+    files:
+      - name: "site"
+        label: "Site Settings"
+        file: "config/site.yaml"
+        fields:
+          - name: "site_name"
+            label: "Site Name"
+            widget: "string"
+
+          - name: "tagline"
+            label: "Tagline"
+            widget: "string"
+
+          - name: "hero"
+            label: "Hero Section"
+            widget: "object"
+            fields:
+              - name: "cloudinary_id"
+                label: "Hero Image (Cloudinary ID)"
+                widget: "string"
+              - name: "alt"
+                label: "Alt Text"
+                widget: "string"
+
+          - name: "photo_wall"
+            label: "Photo Wall"
+            widget: "object"
+            fields:
+              - name: "mode"
+                label: "Mode"
+                widget: "select"
+                options:
+                  - { label: "Recent", value: "recent" }
+                  - { label: "Random", value: "random" }
+              - name: "count"
+                label: "Number of Photos"
+                widget: "number"
+                value_type: "int"
+                min: 6
+                max: 50
+
+          - name: "social"
+            label: "Social Links"
+            widget: "object"
+            fields:
+              - name: "instagram"
+                label: "Instagram URL"
+                widget: "string"
+                required: false
+
+          - name: "analytics"
+            label: "Analytics"
+            widget: "object"
+            fields:
+              - name: "google_analytics_id"
+                label: "Google Analytics ID"
+                widget: "string"
+                required: false
+                hint: "GA4 Measurement ID (G-XXXXXXXXXX)"
+
+  # About page
+  - name: "pages"
+    label: "Pages"
+    files:
+      - name: "about"
+        label: "About Page"
+        file: "config/about.md"
+        fields:
+          - name: "body"
+            label: "Content"
+            widget: "markdown"
