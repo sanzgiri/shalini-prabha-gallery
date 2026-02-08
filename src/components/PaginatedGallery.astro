@@ -174,6 +174,7 @@ const hasMore = photos.length > initialCount;
 
   /* Styles for dynamically loaded photo cards */
   :global(.photo-card) {
+    position: relative;
     break-inside: avoid;
     margin-bottom: 1.25rem;
   }
@@ -182,7 +183,7 @@ const hasMore = photos.length > initialCount;
     display: block;
     position: relative;
     overflow: hidden;
-    border-radius: 4px 4px 0 0;
+    border-radius: 4px;
   }
 
   :global(.photo-link img) {
@@ -197,9 +198,28 @@ const hasMore = photos.length > initialCount;
   }
 
   :global(.photo-title-bar) {
-    background: rgba(0, 0, 0, 0.85);
-    padding: 0.5rem 0.75rem;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.75rem 0.85rem;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.75) 0%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
     border-radius: 0 0 4px 4px;
+  }
+
+  :global(.photo-card:hover .photo-title-bar),
+  :global(.photo-card:focus-within .photo-title-bar) {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
   }
 
   :global(.photo-title) {
