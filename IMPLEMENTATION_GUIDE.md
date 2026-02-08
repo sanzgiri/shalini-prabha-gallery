@@ -86,46 +86,46 @@ shalini-prabha-gallery/
 1. **Initialize Astro project** with TypeScript support
 
 2. **Create BaseLayout.astro** with:
-   - HTML boilerplate with meta tags
-   - Sticky header with logo and navigation
-   - Footer with social links
-   - Slot for page content
+  - HTML boilerplate with meta tags
+  - Sticky header with logo and navigation
+  - Footer with social links
+  - Slot for page content
 
 3. **Create global.css** with:
-   - CSS reset
-   - Minimal white theme (clean, photo-focused)
-   - Typography (system fonts)
-   - Responsive breakpoints
+  - CSS reset
+  - Minimal white theme (clean, photo-focused)
+  - Typography (system fonts)
+  - Responsive breakpoints
 
 4. **Create Header.astro**:
-   - Site name/logo (left)
-   - Navigation links: Birds | Wildlife | Landscapes | Flora & Macro | About (center/right)
-   - Search icon (right)
-   - Mobile hamburger menu
-   - Sticky positioning
+  - Site name/logo (left)
+  - Navigation links: Birds | Wildlife | Landscapes | Flora & Macro | About (center/right)
+  - Search icon (right)
+  - Mobile hamburger menu
+  - Sticky positioning
 
 5. **Create Footer.astro**:
-   - Social media links (read from config)
-   - Copyright notice
-   - "Contact for Prints" link
+  - Social media links (read from config)
+  - Copyright notice
+  - "Contact for Prints" link
 
 6. **Create homepage (index.astro)**:
-   - Hero section with featured image (full-width or large)
-   - Photo wall section below (placeholder grid for now)
+  - Hero section with featured image (full-width or large)
+  - Photo wall section below (placeholder grid for now)
 
 7. **Create placeholder category pages**:
-   - `/birds/index.astro`
-   - `/wildlife/index.astro`
-   - `/landscapes/index.astro`
-   - `/flora-macro/index.astro`
-   - Each shows category title and placeholder grid
+  - `/birds/index.astro`
+  - `/wildlife/index.astro`
+  - `/landscapes/index.astro`
+  - `/flora-macro/index.astro`
+  - Each shows category title and placeholder grid
 
 8. **Create About page** (`/about.astro`):
-   - Reads content from `config/about.md`
+  - Reads content from `config/about.md`
 
 9. **Add sample photos** to `public/photos/`:
-   - Use the 6 sample images provided
-   - Various aspect ratios (landscape, portrait, square)
+  - Use the 6 sample images provided
+  - Various aspect ratios (landscape, portrait, square)
 
 ### Acceptance Criteria - Phase 1
 
@@ -145,17 +145,17 @@ shalini-prabha-gallery/
 ### Tasks
 
 1. **Create config loader utility** (`src/utils/config.ts`):
-   ```typescript
+```typescript
    // Functions to load and parse YAML config files
    export function getSiteConfig(): SiteConfig
    export function getCategories(): Category[]
    export function getPhotos(): Photo[]
    export function getPhotosByCategory(categoryId: string): Photo[]
    export function getPhotoBySlug(slug: string): Photo | undefined
-   ```
+```
 
 2. **Define TypeScript interfaces** (`src/types.ts`):
-   ```typescript
+```typescript
    interface SiteConfig {
      site_name: string
      tagline: string
@@ -184,20 +184,20 @@ shalini-prabha-gallery/
      date_taken: string
      available_for_print: boolean
    }
-   ```
+```
 
 3. **Populate config files** with sample data:
-   - `config/site.yaml` - site settings
-   - `config/categories.yaml` - category definitions
-   - `config/photos.yaml` - sample photo entries
+  - `config/site.yaml` - site settings
+  - `config/categories.yaml` - category definitions
+  - `config/photos.yaml` - sample photo entries
 
 4. **Update Header.astro** to read navigation from categories config
 
 5. **Update Footer.astro** to read social links from site config
 
 6. **Update homepage** to:
-   - Read hero image from config
-   - Read photo_wall settings from config
+  - Read hero image from config
+  - Read photo_wall settings from config
 
 ### Acceptance Criteria - Phase 2
 
@@ -216,45 +216,45 @@ shalini-prabha-gallery/
 ### Tasks
 
 1. **Create PhotoCard.astro**:
-   - Displays photo thumbnail
-   - Shows title on hover
-   - Click triggers lightbox
-   - Responsive image sizing
+  - Displays photo thumbnail
+  - Shows title on hover
+  - Click triggers lightbox
+  - Responsive image sizing
 
 2. **Create MasonryGrid.astro**:
-   - CSS-based masonry layout (use CSS columns or grid)
-   - Accepts array of photos as prop
-   - Responsive columns (1 on mobile, 2 on tablet, 3-4 on desktop)
+  - CSS-based masonry layout (use CSS columns or grid)
+  - Accepts array of photos as prop
+  - Responsive columns (1 on mobile, 2 on tablet, 3-4 on desktop)
 
 3. **Create Lightbox.astro** (or use client-side JS):
-   - Modal overlay with dark background
-   - Large image display
-   - Caption, species, location info
-   - Previous/Next navigation arrows
-   - Close button
-   - "View Details" link to dedicated page
-   - Keyboard navigation (arrow keys, ESC)
+  - Modal overlay with dark background
+  - Large image display
+  - Caption, species, location info
+  - Previous/Next navigation arrows
+  - Close button
+  - "View Details" link to dedicated page
+  - Keyboard navigation (arrow keys, ESC)
 
 4. **Create FilterBar.astro**:
-   - Horizontal button group for filters
-   - "All" button + filter-specific buttons
-   - Active state styling
-   - Used only on Landscapes page
+  - Horizontal button group for filters
+  - "All" button + filter-specific buttons
+  - Active state styling
+  - Used only on Landscapes page
 
 5. **Create GalleryLayout.astro**:
-   - Extends BaseLayout
-   - Category title
-   - Optional filter bar slot
-   - Masonry grid slot
+  - Extends BaseLayout
+  - Category title
+  - Optional filter bar slot
+  - Masonry grid slot
 
 6. **Update category pages** to use real data:
-   - Fetch photos by category
-   - Pass to MasonryGrid component
-   - Landscapes page includes FilterBar
+  - Fetch photos by category
+  - Pass to MasonryGrid component
+  - Landscapes page includes FilterBar
 
 7. **Update homepage photo wall**:
-   - Fetch photos based on config (recent or random)
-   - Display in MasonryGrid
+  - Fetch photos based on config (recent or random)
+  - Display in MasonryGrid
 
 ### Acceptance Criteria - Phase 3
 
@@ -274,29 +274,29 @@ shalini-prabha-gallery/
 ### Tasks
 
 1. **Create PhotoLayout.astro**:
-   - Large image display
-   - Title, description
-   - Species and location (if available)
-   - Date taken
-   - "Request Print" button
-   - Back to gallery link
-   - Previous/Next photo navigation
+  - Large image display
+  - Title, description
+  - Species and location (if available)
+  - Date taken
+  - "Request Print" button
+  - Back to gallery link
+  - Previous/Next photo navigation
 
 2. **Create dynamic routes** for each category:
-   - `/birds/[...slug].astro`
-   - `/wildlife/[...slug].astro`
-   - `/landscapes/[...slug].astro`
-   - `/flora-macro/[...slug].astro`
+  - `/birds/[...slug].astro`
+  - `/wildlife/[...slug].astro`
+  - `/landscapes/[...slug].astro`
+  - `/flora-macro/[...slug].astro`
 
 3. **Implement getStaticPaths()** for each:
-   - Generate paths from photos.yaml
-   - Pass photo data as props
+  - Generate paths from photos.yaml
+  - Pass photo data as props
 
 4. **Add SEO meta tags** to PhotoLayout:
-   - Title: `{photo.title} | {site_name}`
-   - Description: `{photo.description}`
-   - Open Graph image
-   - Schema.org ImageObject structured data
+  - Title: `{photo.title} | {site_name}`
+  - Description: `{photo.description}`
+  - Open Graph image
+  - Schema.org ImageObject structured data
 
 5. **Update Lightbox** "View Details" to link to photo page
 
@@ -318,23 +318,23 @@ shalini-prabha-gallery/
 ### Tasks
 
 1. **Create ContactForm.astro**:
-   - Netlify Forms compatible markup
-   - Fields: Name, Email, Subject, Message
-   - Hidden field for photo reference (if coming from photo page)
-   - Submit button
-   - Success/error states
+  - Netlify Forms compatible markup
+  - Fields: Name, Email, Subject, Message
+  - Hidden field for photo reference (if coming from photo page)
+  - Submit button
+  - Success/error states
 
 2. **Create Contact page** (`/contact.astro`):
-   - ContactForm component
-   - Brief intro text
+  - ContactForm component
+  - Brief intro text
 
 3. **Update "Request Print" button** on photo pages:
-   - Links to `/contact?photo={photo.slug}`
-   - Pre-populates subject/message with photo info
+  - Links to `/contact?photo={photo.slug}`
+  - Pre-populates subject/message with photo info
 
 4. **Add Netlify Forms configuration**:
-   - Form name attribute
-   - Honeypot field for spam prevention
+  - Form name attribute
+  - Honeypot field for spam prevention
 
 ### Acceptance Criteria - Phase 5
 
@@ -353,20 +353,20 @@ shalini-prabha-gallery/
 ### Tasks
 
 1. **Create search index** at build time:
-   - Generate JSON with searchable fields (title, species, location, description, category)
-   - Output to `public/search-index.json`
+  - Generate JSON with searchable fields (title, species, location, description, category)
+  - Output to `public/search-index.json`
 
 2. **Create SearchBar.astro**:
-   - Search input with icon
-   - Expandable on click (header integration)
-   - Form submits to /search page
+  - Search input with icon
+  - Expandable on click (header integration)
+  - Form submits to /search page
 
 3. **Create Search page** (`/search.astro`):
-   - Client-side JavaScript to:
-     - Load search index
-     - Initialize Fuse.js
-     - Filter results based on query param
-   - Display results in MasonryGrid
+  - Client-side JavaScript to:
+    - Load search index
+    - Initialize Fuse.js
+    - Filter results based on query param
+  - Display results in MasonryGrid
 
 4. **Update Header** to include SearchBar
 
@@ -387,29 +387,29 @@ shalini-prabha-gallery/
 ### Tasks
 
 1. **Add @astrojs/sitemap** integration:
-   - Configure in astro.config.mjs
-   - Generates sitemap.xml automatically
+  - Configure in astro.config.mjs
+  - Generates sitemap.xml automatically
 
 2. **Create robots.txt** in public folder
 
 3. **Add comprehensive meta tags** to BaseLayout:
-   - Canonical URLs
-   - Open Graph (og:title, og:description, og:image)
-   - Twitter Card meta tags
+  - Canonical URLs
+  - Open Graph (og:title, og:description, og:image)
+  - Twitter Card meta tags
 
 4. **Add structured data** to photo pages:
-   - Schema.org ImageObject JSON-LD
-   - Include: name, description, contentUrl, author, datePublished
+  - Schema.org ImageObject JSON-LD
+  - Include: name, description, contentUrl, author, datePublished
 
 5. **Add Google Analytics**:
-   - Create component for GA script
-   - Include in BaseLayout head
-   - Use GA4 measurement ID from config
+  - Create component for GA script
+  - Include in BaseLayout head
+  - Use GA4 measurement ID from config
 
 6. **Optimize images**:
-   - Ensure responsive srcset
-   - Add width/height attributes to prevent layout shift
-   - Proper alt text on all images
+  - Ensure responsive srcset
+  - Add width/height attributes to prevent layout shift
+  - Proper alt text on all images
 
 ### Acceptance Criteria - Phase 7
 
@@ -429,29 +429,29 @@ shalini-prabha-gallery/
 ### Tasks
 
 1. **Create process-export.js**:
-   - Accepts path to Instagram export zip
-   - Extracts photos and metadata
-   - Copies new photos to `public/photos/`
-   - Outputs list of new photos for classification
+  - Accepts path to Instagram export zip
+  - Extracts photos and metadata
+  - Copies new photos to `public/photos/`
+  - Outputs list of new photos for classification
 
 2. **Create classify-images.js**:
-   - Accepts list of image paths
-   - Calls vision model (Ollama local or API)
-   - Returns: category, species, location for each
-   - Prompt template for consistent classification
+  - Accepts list of image paths
+  - Calls vision model (Ollama local or API)
+  - Returns: category, species, location for each
+  - Prompt template for consistent classification
 
 3. **Create generate-captions.js**:
-   - Accepts image + classification data + Instagram caption
-   - Generates title and description
-   - Uses Instagram caption for grounding
+  - Accepts image + classification data + Instagram caption
+  - Generates title and description
+  - Uses Instagram caption for grounding
 
 4. **Create update-photos-yaml.js**:
-   - Merges new photo data into photos.yaml
-   - Preserves manual overrides
-   - Generates slugs from titles
+  - Merges new photo data into photos.yaml
+  - Preserves manual overrides
+  - Generates slugs from titles
 
 5. **Create main update.sh script**:
-   ```bash
+```bash
    #!/bin/bash
    # Usage: ./scripts/update.sh ~/Downloads/instagram-export.zip
    
@@ -485,7 +485,7 @@ shalini-prabha-gallery/
        git push
        echo "Deployed! Netlify will build automatically."
    fi
-   ```
+```
 
 ### Acceptance Criteria - Phase 8
 
@@ -628,8 +628,8 @@ Before deploying to Netlify:
 
 1. Connect Git repository to Netlify
 2. Build settings:
-   - Build command: `npm run build`
-   - Publish directory: `dist`
+  - Build command: `npm run build`
+  - Publish directory: `dist`
 3. Enable Netlify Forms in site settings
 4. Set up form notifications (email)
 
