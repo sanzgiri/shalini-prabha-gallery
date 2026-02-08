@@ -86,7 +86,16 @@ async function main() {
 
   for (let i = 0; i < captionedPhotos.length; i++) {
     const photo = captionedPhotos[i];
-    const { filename, classification, caption, path: pendingPath } = photo;
+    const {
+      filename,
+      classification,
+      caption,
+      path: pendingPath,
+      instagramCaption,
+      instagramDate,
+      instagramTimestamp,
+      instagramLocation
+    } = photo;
 
     console.log(`[${i + 1}/${captionedPhotos.length}] ${filename}`);
 
@@ -143,6 +152,9 @@ async function main() {
     }
 
     // Create photo entry
+    const dateTaken = resolveDateTaken(instagramDate, instagramTimestamp);
+    const location = instagramLocation || classification.location || undefined;
+
     const photoEntry = {
       id,
       filename: newFilename,
@@ -150,10 +162,11 @@ async function main() {
       category: classification.category,
       filters: classification.filter ? [classification.filter] : [],
       species: classification.species || undefined,
-      location: classification.location || undefined,
+      location,
       title: caption.title,
       description: caption.description,
-      date_taken: new Date().toISOString().split('T')[0],
+      instagram_caption: instagramCaption || undefined,
+      date_taken: dateTaken,
       available_for_print: true,
       ...(cloudinaryId && { cloudinary_id: cloudinaryId }),
       ...(dimensions && { width: dimensions.width, height: dimensions.height })
@@ -261,6 +274,22 @@ async function getImageDimensions(imagePath) {
 
   // Return null if we can't determine dimensions
   return null;
+}
+
+function resolveDateTaken(instagramDate, instagramTimestamp) {
+  if (instagramDate) {
+    return instagramDate;
+  }
+
+  if (instagramTimestamp) {
+    const num = Number(instagramTimestamp);
+    if (Number.isFinite(num)) {
+      const ms = num > 1e12 ? num : num * 1000;
+      return new Date(ms).toISOString().split('T')[0];
+    }
+  }
+
+  return new Date().toISOString().split('T')[0];
 }
 
 function cleanup() {

@@ -208,6 +208,7 @@
     species: string;
     location: string;
     href: string;
+    element: HTMLElement;
   }
 
   class LightboxController {
@@ -238,25 +239,17 @@
     }
 
     private init() {
-      // Collect all photo cards with lightbox enabled
-      const cards = document.querySelectorAll('.photo-card[data-lightbox="true"]');
+      // Event delegation for dynamically added cards
+      document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement | null;
+        const link = target?.closest('.photo-card[data-lightbox="true"] .photo-link') as HTMLAnchorElement | null;
+        if (!link) return;
 
-      cards.forEach((card, index) => {
-        const el = card as HTMLElement;
-        this.photos.push({
-          fullUrl: el.dataset.fullUrl || '',
-          title: el.dataset.title || '',
-          description: el.dataset.description || '',
-          species: el.dataset.species || '',
-          location: el.dataset.location || '',
-          href: el.dataset.href || '#',
-        });
+        e.preventDefault();
+        const card = link.closest('.photo-card[data-lightbox="true"]') as HTMLElement | null;
+        if (!card) return;
 
-        const link = card.querySelector('.photo-link');
-        link?.addEventListener('click', (e) => {
-          e.preventDefault();
-          this.open(index);
-        });
+        this.openFromCard(card);
       });
 
       // Close button
@@ -285,6 +278,28 @@
             break;
         }
       });
+    }
+
+    private collectPhotos(): PhotoData[] {
+      const cards = Array.from(document.querySelectorAll('.photo-card[data-lightbox="true"]')) as HTMLElement[];
+      return cards
+        .filter((card) => !card.classList.contains('hidden'))
+        .map((el) => ({
+          fullUrl: el.dataset.fullUrl || '',
+          title: el.dataset.title || '',
+          description: el.dataset.description || '',
+          species: el.dataset.species || '',
+          location: el.dataset.location || '',
+          href: el.dataset.href || '#',
+          element: el
+        }));
+    }
+
+    private openFromCard(card: HTMLElement) {
+      this.photos = this.collectPhotos();
+      const index = this.photos.findIndex((photo) => photo.element === card);
+      if (index === -1) return;
+      this.open(index);
     }
 
     private open(index: number) {
@@ -342,13 +357,21 @@
     }
   }
 
+  declare global {
+    interface Window {
+      __lightboxController?: LightboxController;
+    }
+  }
+
+  function initLightbox() {
+    if (!window.__lightboxController) {
+      window.__lightboxController = new LightboxController();
+    }
+  }
+
   // Initialize when DOM is ready
-  document.addEventListener('DOMContentLoaded', () => {
-    new LightboxController();
-  });
+  document.addEventListener('DOMContentLoaded', initLightbox);
 
   // Also initialize on Astro page transitions
-  document.addEventListener('astro:page-load', () => {
-    new LightboxController();
-  });
+  document.addEventListener('astro:page-load', initLightbox);
 </script>

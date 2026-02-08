@@ -2216,18 +2216,6 @@ photos:
     width: 1080
     height: 718
     cloudinary_id: "photo-gallery/flora-macro/blooming-pink-tulips"
-  - id: "landscape-108"
-    filename: "embracing-the-snowfall.jpg"
-    slug: "embracing-the-snowfall"
-    category: "landscapes"
-    filters: []
-    title: "Embracing the Snowfall"
-    description: "A young man stands joyfully with arms outstretched, welcoming the snowfall around him. The delicate snowflakes create a magical atmosphere, capturing the essence of winter beauty."
-    date_taken: "2018-02-01"
-    available_for_print: true
-    width: 1080
-    height: 813
-    cloudinary_id: "photo-gallery/landscapes/embracing-the-snowfall"
   - id: "landscape-109"
     filename: "tranquil-river-reflection.jpg"
     slug: "tranquil-river-reflection"
@@ -5614,19 +5602,6 @@ photos:
     width: 1440
     height: 1440
     cloudinary_id: "photo-gallery/birds/red-breasted-sapsucker-on-a-tree"
-  - id: "wildlife-048"
-    filename: "mysterious-insect-encounter.jpg"
-    slug: "mysterious-insect-encounter"
-    category: "wildlife"
-    filters: []
-    title: "Mysterious Insect Encounter"
-    description: "An intriguing close-up of an insect on a leaf, showcasing its intricate details and vibrant colors in nature."
-    date_taken: "2020-06-01"
-    available_for_print: true
-    species: "null"
-    width: 820
-    height: 820
-    cloudinary_id: "photo-gallery/wildlife/mysterious-insect-encounter"
   - id: "bird-143"
     filename: "lesser-goldfinch-at-the-birdbath.jpg"
     slug: "lesser-goldfinch-at-the-birdbath"
@@ -9499,19 +9474,6 @@ photos:
     width: 1440
     height: 1440
     cloudinary_id: "photo-gallery/wildlife/pronghorn-playfully-sticking-tongue-out"
-  - id: "wildlife-096"
-    filename: "mighty-bison-in-snow.jpg"
-    slug: "mighty-bison-in-snow"
-    category: "wildlife"
-    filters: []
-    title: "Mighty Bison in Snow"
-    description: "A captivating portrait of a bison trudging through the snow, showcasing its thick fur and strong presence. The image captures the essence of wildlife in a serene winter landscape."
-    date_taken: "2023-04-01"
-    available_for_print: true
-    species: "Bison bison"
-    width: 1440
-    height: 1800
-    cloudinary_id: "photo-gallery/wildlife/mighty-bison-in-snow"
   - id: "wildlife-097"
     filename: "resilient-bison-in-winter-landscape.jpg"
     slug: "resilient-bison-in-winter-landscape"
@@ -9540,19 +9502,6 @@ photos:
     width: 1440
     height: 960
     cloudinary_id: "photo-gallery/wildlife/majestic-bison-herd-in-yellowstone"
-  - id: "wildlife-099"
-    filename: "majestic-bison-in-winter.jpg"
-    slug: "majestic-bison-in-winter"
-    category: "wildlife"
-    filters: []
-    title: "Majestic Bison in Winter"
-    description: "A powerful bison stands boldly in a snowy landscape, showcasing its thick, frosty coat. The animal's presence evokes the wild beauty of winter."
-    date_taken: "2023-04-01"
-    available_for_print: true
-    species: "Bison bison"
-    width: 1440
-    height: 1800
-    cloudinary_id: "photo-gallery/wildlife/majestic-bison-in-winter"
   - id: "wildlife-100"
     filename: "majestic-elk-in-morning-light.jpg"
     slug: "majestic-elk-in-morning-light"

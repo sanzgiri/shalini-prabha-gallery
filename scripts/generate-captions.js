@@ -25,7 +25,7 @@ const CLASSIFIED_PATH = join(__dirname, 'classified-photos.json');
 const CAPTIONED_PATH = join(__dirname, 'captioned-photos.json');
 
 function getCaptionPrompt(photo) {
-  const { classification, instagramCaption } = photo;
+  const { classification, instagramCaption, instagramLocation } = photo;
 
   return `Generate a title and description for this photograph.
 
@@ -33,6 +33,7 @@ Context:
 - Category: ${classification.category}
 ${classification.species ? `- Species: ${classification.species}` : ''}
 ${classification.location ? `- Location: ${classification.location}` : ''}
+${instagramLocation ? `- Instagram location: ${instagramLocation}` : ''}
 ${instagramCaption ? `- Original Instagram caption: "${instagramCaption}"` : ''}
 
 Requirements:
